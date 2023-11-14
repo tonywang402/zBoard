@@ -18,11 +18,11 @@ export default function Home() {
           <HStack w="100%" h="100%">
             <DatadogMonitorOverview width="240px" />
             <VStack flex="1" h="100%" overflow="hidden">
-              <HStack h="448px" w="100%">
+              <HStack h="950px" w="100%">
                 <BuildStatusOverview flex="75%" h="100%" />
-                <TicketStatusOverview flex="25%" h="100%" />
+                {/* <TicketStatusOverview flex="25%" h="100%" /> */}
               </HStack>
-              <ProjectTimeline flex="1" />
+              {/* <ProjectTimeline flex="1" /> */}
             </VStack>
           </HStack>
         </VStack>

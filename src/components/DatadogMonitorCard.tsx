@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Card, CardBody, Heading, Text } from '@chakra-ui/react';
+import { Stat, StatLabel, StatNumber, StatGroup } from '@chakra-ui/react';
 import { MonitorInfo } from './DatadogMonitorOverview';
 
 interface MonitorProps {
@@ -28,6 +29,16 @@ const DatadogMonitorCard = ({ projectName, monitorInfo }: MonitorProps) => {
             <CardBody display="flex" flexDirection="column" p="16px" pl="12px">
               <Heading size="lg" fontWeight="light">
                 <Text whiteSpace="nowrap">{monitor.env.toUpperCase()}</Text>
+                <StatGroup>
+                  {monitor.status.map((status) => {
+                    return (
+                      <Stat>
+                        <StatLabel>{status.name}</StatLabel>
+                        <StatNumber>{status.count.toString()}</StatNumber>
+                      </Stat>
+                    );
+                  })}
+                </StatGroup>
               </Heading>
             </CardBody>
           </Card>

@@ -1,12 +1,12 @@
 import React from 'react';
 import { useErrorToast } from '@/lib/customToast';
 import RefreshWrapper from './RefreshWrapper';
-import { Flex, Heading, SystemProps } from '@chakra-ui/react';
+import { Flex, SystemProps } from '@chakra-ui/react';
 import { monitorConfig } from '../../config/datadog_monitor.config';
 import DatadogMonitorCard from './DatadogMonitorCard';
 
 interface StatusCount {
-  status: string;
+  name: string;
   count: Number;
 }
 
@@ -42,9 +42,10 @@ const DatadogMonitorOverview = (props: SystemProps) => {
       h="100%"
       minW="230px"
       title={monitorConfig.title || 'Datadog Monitor'}
-      showRefreshButton={false}
+      showRefreshButton={true}
       onRefresh={() => fetchData()}
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
+      showRefreshButtonPosition="buttom"
       render={(data: DatadogMonitor[]) => (
         <Flex
           flexWrap="wrap"

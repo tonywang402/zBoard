@@ -10,7 +10,7 @@ interface alertConfig {
 
 interface monitorData {
   projectName: String;
-  monitorData: Array<any>;
+  monitorInfo: Array<any>;
 }
 
 const handler: NextApiHandler = async (req, res) => {
@@ -42,7 +42,7 @@ async function searchMonitors(
   const allData = await Promise.all(
     monitorConfigs.map((config) => searchMonitor(config, projectName))
   );
-  return { projectName, monitorData: allData };
+  return { projectName, monitorInfo: allData };
 }
 
 const searchMonitor = async (

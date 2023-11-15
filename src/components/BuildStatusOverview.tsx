@@ -24,6 +24,7 @@ const BuildStatusOverview = (props: SystemProps) => {
       onRefresh={fetchData}
       refreshIntervalSeconds={buildStatusConfig.refreshIntervalSeconds || 0}
       remainOldDataOnError={true}
+      showRefreshButtonPosition="right"
       render={(data: BuildStatus[]) => (
         <>
           <Grid

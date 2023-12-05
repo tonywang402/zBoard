@@ -27,11 +27,11 @@ const DatadogMonitorOverview = (props: SystemProps) => {
   const toastError = useErrorToast();
 
   const fetchData = async () => {
-    const res = await fetch(`/api/datadog`);
-    if (res.ok) {
-      return await res.json();
+    const monitor = await fetch(`/api/datadog`);
+    if (monitor.ok) {
+      return await monitor.json();
     } else {
-      toastError(await res.text());
+      toastError(await monitor.text());
       return [];
     }
   };
@@ -46,28 +46,30 @@ const DatadogMonitorOverview = (props: SystemProps) => {
       onRefresh={() => fetchData()}
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
       showRefreshButtonPosition="buttom"
-      render={(data: DatadogMonitor[]) => (
-        <Flex
-          flexWrap="wrap"
-          justifyContent="space-between"
-          alignItems="center"
-          gap={1}
-          overflowY="scroll"
-          h="100%"
-          w="100%"
-          maxW="320px"
-        >
-          <>
-            {data.map((datadogMonitor) => (
-              <DatadogMonitorCard
-                key={datadogMonitor.projectName}
-                projectName={datadogMonitor.projectName}
-                monitorInfo={datadogMonitor.monitorInfo}
-              />
-            ))}
-          </>
-        </Flex>
-      )}
+      render={(data: Array<DatadogMonitor>) => {
+        return (
+          <Flex
+            flexWrap="wrap"
+            justifyContent="space-between"
+            alignItems="center"
+            gap={1}
+            overflowY="scroll"
+            h="100%"
+            w="100%"
+            maxW="320px"
+          >
+            <>
+              {data.map((datadogMonitor) => (
+                <DatadogMonitorCard
+                  key={datadogMonitor.projectName}
+                  projectName={datadogMonitor.projectName}
+                  monitorInfo={datadogMonitor.monitorInfo}
+                />
+              ))}
+            </>
+          </Flex>
+        );
+      }}
     ></RefreshWrapper>
   );
 };

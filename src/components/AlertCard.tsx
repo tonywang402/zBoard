@@ -1,5 +1,4 @@
 import React from 'react';
-import { useToast as useChakraToast } from '@chakra-ui/toast';
 import { AlertIcon, AlertTitle, AlertDescription, Box, Alert } from '@chakra-ui/react';
 import moment from 'moment';
 
@@ -12,7 +11,7 @@ export interface AlertInfo {
   triggeredTime: number;
 }
 
-const AlertCard = (alertInfo: AlertInfo) => {
+export const AlertCard = (alertInfo: AlertInfo) => {
   const triggerTime = moment.unix(alertInfo.triggeredTime).format('YYYY-MM-DD HH:mm:ss');
 
   return (
@@ -24,16 +23,4 @@ const AlertCard = (alertInfo: AlertInfo) => {
       </Box>
     </Alert>
   );
-};
-
-export const AltertToast = (alertInfos: AlertInfo) => {
-  const toast = useChakraToast();
-
-  toast({
-    position: 'top',
-    duration: null,
-    isClosable: true,
-    render: () => <AlertCard {...alertInfos} />,
-  });
-  return null;
 };

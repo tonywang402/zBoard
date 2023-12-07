@@ -8,11 +8,6 @@ interface alertConfig {
   alertStrategy: string;
 }
 
-interface alertData {
-  projectName: String;
-  alerts: Array<any>;
-}
-
 interface alertDatas {
   name: string;
   id: number;

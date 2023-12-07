@@ -36,7 +36,7 @@ const DatadogAlertsOverview = (props: SystemProps) => {
       showRefreshButton={true}
       onRefresh={() => fetchData()}
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
-      showRefreshButtonPosition="buttom"
+      showRefreshButtonPosition="right"
       render={(data: Array<DatadogAlert>) => {
         return (
           <Flex

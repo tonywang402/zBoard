@@ -32,9 +32,9 @@ const DatadogMonitorCard = ({ projectName, monitorInfo }: MonitorProps) => {
                 <Heading size="lg" fontWeight="light">
                   <Text whiteSpace="nowrap">{monitor.env.toUpperCase()}</Text>
                   <StatGroup>
-                    {monitor.status.map((status) => {
+                    {monitor.status.map((status, index) => {
                       return (
-                        <Stat>
+                        <Stat key={index}>
                           <StatLabel>{status.name}</StatLabel>
                           <StatNumber>{status.count.toString()}</StatNumber>
                         </Stat>

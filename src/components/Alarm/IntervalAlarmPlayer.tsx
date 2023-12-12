@@ -6,7 +6,7 @@ interface IntervalAlarmPlayerProps {
   alarmSrc?: string[];
 }
 
-const IntervalAlarmPlayer: React.FC<IntervalAlarmPlayerProps> = ({ intervalMin = 30, alarmSrc= ['/audio/mayday.mp3'] }) => {
+const IntervalAlarmPlayer: React.FC<IntervalAlarmPlayerProps> = ({ intervalMin = 30, alarmSrc= ['/audio/sxfr.mp3'] }) => {
   const intervalRef = useRef<NodeJS.Timeout>();
   const [isAlarmPlayed, setIsAlarmPlayed] = useState(false);
 

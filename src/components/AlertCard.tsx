@@ -18,8 +18,8 @@ export const AlertCard = (alertInfo: AlertInfo) => {
     <Alert status="error">
       <AlertIcon />
       <Box>
-        <AlertTitle>{alertInfo.name}</AlertTitle>
-        <AlertDescription>Created at: {triggerTime}</AlertDescription>
+        <AlertTitle fontSize="25px">{alertInfo.name.substring(14)}</AlertTitle>
+        <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
       </Box>
     </Alert>
   );

@@ -20,7 +20,7 @@ interface RefreshWrapperProps<T> {
   render: (data: T[]) => JSX.Element;
   showRefreshButton?: boolean;
   remainOldDataOnError?: boolean;
-  showRefreshButtonPosition: 'buttom' | 'right';
+  showRefreshButtonPosition?: 'buttom' | 'right';
   [key: string]: any;
 }
 

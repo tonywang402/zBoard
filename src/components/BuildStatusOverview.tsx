@@ -20,12 +20,10 @@ const BuildStatusOverview = (props: SystemProps) => {
   return (
     <RefreshWrapper
       {...props}
-      minH="500px"
       title={buildStatusConfig.title || 'Build Status'}
       onRefresh={fetchData}
       refreshIntervalSeconds={buildStatusConfig.refreshIntervalSeconds || 0}
       remainOldDataOnError={true}
-      showRefreshButtonPosition="right"
       render={(data: BuildStatus[]) => (
         <>
           <Grid

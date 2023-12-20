@@ -61,7 +61,6 @@ const OwnerRotationOverview = (props: SystemProps) => {
       minW="230px"
       title={ownerRotationConfig.title || 'Owner Rotation'}
       showRefreshButton={false}
-      showRefreshButtonPosition="buttom"
       onRefresh={() => fetchData()}
       refreshIntervalSeconds={ownerRotationConfig.refreshIntervalSeconds || 0}
       render={(data: Rotation[]) => (

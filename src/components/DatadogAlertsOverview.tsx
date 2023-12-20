@@ -3,31 +3,22 @@ import { useErrorToast } from '@/lib/customToast';
 import RefreshWrapper from './RefreshWrapper';
 import { Flex, SystemProps } from '@chakra-ui/react';
 import { monitorConfig } from '../../config/datadog_monitor.config';
-import DatadogMonitorCard from './DatadogMonitorCard';
+import { AlertCard } from './AlertCard';
 
-interface StatusCount {
+interface DatadogAlert {
   name: string;
-  count: Number;
-}
-
-export interface MonitorInfo {
+  id: number;
+  triggeredTime: number;
   env: string;
-  priority: Number;
+  priority: number;
   alertStrategy: string;
-  color: string;
-  status: Array<StatusCount>;
 }
 
-interface DatadogMonitor {
-  projectName: string;
-  monitorInfo: Array<MonitorInfo>;
-}
-
-const DatadogMonitorOverview = (props: SystemProps) => {
+const DatadogAlertsOverview = (props: SystemProps) => {
   const toastError = useErrorToast();
 
   const fetchData = async () => {
-    const monitor = await fetch(`/api/datadog`);
+    const monitor = await fetch(`/api/datadog_alert`);
     if (monitor.ok) {
       return await monitor.json();
     } else {
@@ -39,14 +30,14 @@ const DatadogMonitorOverview = (props: SystemProps) => {
   return (
     <RefreshWrapper
       {...props}
-      h="100%"
-      minW="230px"
-      title={monitorConfig.title || 'Datadog Monitor'}
+      maxH="450px"
+      minW="150px"
+      title={'Datadog Alerts'}
       showRefreshButton={true}
       onRefresh={() => fetchData()}
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
-      showRefreshButtonPosition="buttom"
-      render={(data: Array<DatadogMonitor>) => {
+      showRefreshButtonPosition="right"
+      render={(data: Array<DatadogAlert>) => {
         return (
           <Flex
             flexWrap="wrap"
@@ -56,17 +47,13 @@ const DatadogMonitorOverview = (props: SystemProps) => {
             overflowY="scroll"
             h="100%"
             w="100%"
-            maxW="320px"
+            maxW="100%"
           >
-            <>
-              {data.map((datadogMonitor) => (
-                <DatadogMonitorCard
-                  key={datadogMonitor.projectName}
-                  projectName={datadogMonitor.projectName}
-                  monitorInfo={datadogMonitor.monitorInfo}
-                />
+            <Flex flex-direction="row" gap={10}>
+              {data.map((DatadogAlert) => (
+                <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
               ))}
-            </>
+            </Flex>
           </Flex>
         );
       }}
@@ -74,4 +61,4 @@ const DatadogMonitorOverview = (props: SystemProps) => {
   );
 };
 
-export default DatadogMonitorOverview;
+export default DatadogAlertsOverview;

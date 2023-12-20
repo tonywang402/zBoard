@@ -20,10 +20,12 @@ const BuildStatusOverview = (props: SystemProps) => {
   return (
     <RefreshWrapper
       {...props}
+      minH="500px"
       title={buildStatusConfig.title || 'Build Status'}
       onRefresh={fetchData}
       refreshIntervalSeconds={buildStatusConfig.refreshIntervalSeconds || 0}
       remainOldDataOnError={true}
+      showRefreshButtonPosition="right"
       render={(data: BuildStatus[]) => (
         <>
           <Grid
@@ -32,7 +34,7 @@ const BuildStatusOverview = (props: SystemProps) => {
             width="100%"
             rowGap="18px"
             columnGap="24px"
-            gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
+            gridTemplateColumns="repeat(auto-fit, minmax(270px, 1fr))"
           >
             {data.map((item, index) => (
               <BuildStatusCard key={index} buildStatus={item} />

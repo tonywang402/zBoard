@@ -20,6 +20,7 @@ interface RefreshWrapperProps<T> {
   render: (data: T[]) => JSX.Element;
   showRefreshButton?: boolean;
   remainOldDataOnError?: boolean;
+  showRefreshButtonPosition?: 'buttom' | 'right';
   [key: string]: any;
 }
 
@@ -30,8 +31,10 @@ const RefreshWrapper = <T,>({
   render,
   showRefreshButton = true,
   remainOldDataOnError = false,
+  showRefreshButtonPosition = 'right',
   ...props
 }: RefreshWrapperProps<T>) => {
+  const flexDirection = showRefreshButtonPosition === 'buttom' ? 'column' : 'row';
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [data, setData] = useState<T[]>([]);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string>();
@@ -43,7 +46,7 @@ const RefreshWrapper = <T,>({
     setIsRefreshing(true);
     try {
       const newData = await onRefresh();
-      if (!remainOldDataOnError || ( remainOldDataOnError && !isEmpty(newData) )) {
+      if (!remainOldDataOnError || (remainOldDataOnError && !isEmpty(newData))) {
         setData(newData);
       }
       setLastUpdatedAt(moment().format('HH:mm:ss'));
@@ -75,7 +78,7 @@ const RefreshWrapper = <T,>({
         w="100%"
         {...props}
       >
-        <Center w="100%" justifyContent="space-between">
+        <Center w="100%" justifyContent="space-between" flexDirection={flexDirection}>
           <Heading size="md" color={fontColor} lineHeight="32px">
             {title}
           </Heading>

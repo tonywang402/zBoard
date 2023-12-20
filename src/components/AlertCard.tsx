@@ -1,6 +1,7 @@
 import React from 'react';
-import { AlertIcon, AlertTitle, AlertDescription, Box, Alert } from '@chakra-ui/react';
+import { AlertIcon, AlertTitle, AlertDescription, Box, Alert, Flex } from '@chakra-ui/react';
 import moment from 'moment';
+import AcknowledgeBox from './AcknowledgeBox';
 
 export interface AlertInfo {
   env: string;
@@ -18,8 +19,13 @@ export const AlertCard = (alertInfo: AlertInfo) => {
     <Alert status="error">
       <AlertIcon />
       <Box>
-        <AlertTitle fontSize="25px">{alertInfo.name.substring(14)}</AlertTitle>
-        <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
+        <AlertTitle fontSize="25px" marginBottom="10px">
+          {alertInfo.name.substring(14)}
+        </AlertTitle>
+        <Flex justifyContent="space-between" alignItems="center">
+          <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
+          <AcknowledgeBox />
+        </Flex>
       </Box>
     </Alert>
   );

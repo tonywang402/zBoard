@@ -24,7 +24,7 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         </AlertTitle>
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
-          <AcknowledgeBox />
+          <AcknowledgeBox intervalMin={30} alarmSrc={['/audio/christmas.mp3']} />
         </Flex>
       </Box>
     </Alert>

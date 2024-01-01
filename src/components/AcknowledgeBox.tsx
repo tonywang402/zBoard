@@ -5,10 +5,14 @@ import { MdBuild } from 'react-icons/md';
 import AlarmContainer, { AlarmContainerProps } from './Alarm/AlarmContainer';
 import { useAlarmToggle } from '../pages/AlarmToggleContext';
 
-const AcknowledgeBox: React.FC<AlarmContainerProps> = ({ intervalMin, alarmSrc }) => {
+const AcknowledgeBox: React.FC<AlarmContainerProps> = ({
+  intervalMin,
+  alarmSrc,
+  needAlarm = true,
+}) => {
   const [isACKED, setIsACKED] = useState(false);
   const { alarmToggle } = useAlarmToggle();
-  console.log('alarmToggle', alarmToggle);
+  const canPlayAlarm = alarmToggle && needAlarm;
 
   if (isACKED) {
     return (
@@ -31,7 +35,7 @@ const AcknowledgeBox: React.FC<AlarmContainerProps> = ({ intervalMin, alarmSrc }
       >
         Need ACK
       </Button>
-      {alarmToggle && <AlarmContainer intervalMin={intervalMin} alarmSrc={alarmSrc} />}
+      {canPlayAlarm && <AlarmContainer intervalMin={intervalMin} alarmSrc={alarmSrc} />}
     </>
   );
 };

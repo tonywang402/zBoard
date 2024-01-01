@@ -14,7 +14,7 @@ export interface AlertInfo {
 
 export const AlertCard = (alertInfo: AlertInfo) => {
   const triggerTime = moment.unix(alertInfo.triggeredTime).format('YYYY-MM-DD HH:mm:ss');
-
+  const needAlarm = alertInfo.alertStrategy !== 'low';
   return (
     <Alert status="error">
       <AlertIcon />
@@ -24,7 +24,11 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         </AlertTitle>
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
-          <AcknowledgeBox intervalMin={30} alarmSrc={['/audio/christmas.mp3']} />
+          <AcknowledgeBox
+            intervalMin={30}
+            alarmSrc={['/audio/christmas.mp3']}
+            needAlarm={needAlarm}
+          />
         </Flex>
       </Box>
     </Alert>

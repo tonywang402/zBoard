@@ -12,7 +12,7 @@ import {
 import { RepeatIcon } from '@chakra-ui/icons';
 import moment from 'moment';
 import { isEmpty } from 'lodash';
-import ChristmasImage from './ChristmasImage';
+import DefaultImage from './ChristmasImage';
 
 interface RefreshWrapperProps<T> {
   title: string;
@@ -97,7 +97,7 @@ const RefreshWrapper = <T,>({
             />
           </Box>
         </Center>
-        {data.length > 0 ? render(data) : <ChristmasImage />}
+        {data.length > 0 ? render(data) : <DefaultImage />}
       </VStack>
     </>
   );

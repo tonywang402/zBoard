@@ -9,15 +9,14 @@ interface AlarmPlayer {
 const AlarmPlayer: React.FC<AlarmPlayer> = ({ src, setIsAlarmPlayed }) => {
   useEffect(() => {
     const alarm = new Howl({ src, autoplay: true, onend: () => setIsAlarmPlayed(true) });
+    alarm.fade(0, 0.6, 25 * 1000);
 
     return () => {
       alarm.unload();
-    }
+    };
   }, [src]);
 
   return null;
 };
-
-
 
 export default AlarmPlayer;

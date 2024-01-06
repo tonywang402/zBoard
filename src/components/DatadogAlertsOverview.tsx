@@ -4,6 +4,7 @@ import RefreshWrapper from './RefreshWrapper';
 import { Flex, SystemProps } from '@chakra-ui/react';
 import { monitorConfig } from '../../config/datadog_monitor.config';
 import { AlertCard } from './AlertCard';
+import { log } from 'console';
 
 interface DatadogAlert {
   name: string;
@@ -50,9 +51,18 @@ const DatadogAlertsOverview = (props: SystemProps) => {
             maxW="100%"
           >
             <Flex flex-direction="row" gap={10}>
-              {data.map((DatadogAlert) => (
-                <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
-              ))}
+              {data
+                .filter((DatadogAlert) => DatadogAlert.alertStrategy !== 'low')
+                .map((DatadogAlert) => (
+                  <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
+                ))}
+            </Flex>
+            <Flex flex-direction="row" gap={10}>
+              {data
+                .filter((DatadogAlert) => DatadogAlert.alertStrategy == 'low')
+                .map((DatadogAlert) => (
+                  <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
+                ))}
             </Flex>
           </Flex>
         );

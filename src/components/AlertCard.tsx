@@ -15,8 +15,9 @@ export interface AlertInfo {
 export const AlertCard = (alertInfo: AlertInfo) => {
   const triggerTime = moment.unix(alertInfo.triggeredTime).format('YYYY-MM-DD HH:mm:ss');
   const needAlarm = alertInfo.alertStrategy !== 'low';
+  const status = alertInfo.alertStrategy !== 'low' ? 'error' : 'info';
   return (
-    <Alert status="error">
+    <Alert status={status}>
       <AlertIcon />
       <Box>
         <AlertTitle fontSize="25px" marginBottom="10px">

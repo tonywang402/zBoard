@@ -29,16 +29,25 @@ const getAlertStrategy = (alertStrategy: string): AlertStrategy => {
   }
 };
 
+const formatTriggerTime = (triggeredTime: number): string => {
+  return moment.unix(triggeredTime).format('YYYY-MM-DD HH:mm:ss');
+};
+
+const formatAlertName = (alertName: string): string => {
+  return alertName.substring(14);
+};
+
 export const AlertCard = (alertInfo: AlertInfo) => {
   const { status, needAlarm, alarmSrc } = getAlertStrategy(alertInfo.alertStrategy);
-  const triggerTime = moment.unix(alertInfo.triggeredTime).format('YYYY-MM-DD HH:mm:ss');
+  const triggerTime = formatTriggerTime(alertInfo.triggeredTime);
+  const alertName = formatAlertName(alertInfo.name);
 
   return (
     <Alert status={status}>
       <AlertIcon />
       <Box>
         <AlertTitle fontSize="25px" marginBottom="10px">
-          {alertInfo.name.substring(14)}
+          {alertName}
         </AlertTitle>
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>

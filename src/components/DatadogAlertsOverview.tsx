@@ -52,14 +52,21 @@ const DatadogAlertsOverview = (props: SystemProps) => {
           >
             <Flex flex-direction="row" gap={10}>
               {data
-                .filter((DatadogAlert) => DatadogAlert.alertStrategy !== 'low')
+                .filter((DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'high')
                 .map((DatadogAlert) => (
                   <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
                 ))}
             </Flex>
             <Flex flex-direction="row" gap={10}>
               {data
-                .filter((DatadogAlert) => DatadogAlert.alertStrategy == 'low')
+                .filter((DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'medium')
+                .map((DatadogAlert) => (
+                  <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
+                ))}
+            </Flex>
+            <Flex flex-direction="row" gap={10}>
+              {data
+                .filter((DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() == 'low')
                 .map((DatadogAlert) => (
                   <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
                 ))}

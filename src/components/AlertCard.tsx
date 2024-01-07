@@ -12,26 +12,29 @@ export interface AlertInfo {
   triggeredTime: number;
 }
 
-const getAlertStatus = (alertStrategy: string) => {
+type AlertStrategy = {
+  status: 'error' | 'warning' | 'info';
+  needAlarm: boolean;
+  alarmSrc: string;
+};
+
+const getAlertStrategy = (alertStrategy: string): AlertStrategy => {
   switch (alertStrategy) {
     case 'high':
-      return 'error';
+      return { status: 'error', needAlarm: true, alarmSrc: '/audio/prodWarning.mp3' };
     case 'medium':
-      return 'warning';
+      return { status: 'warning', needAlarm: true, alarmSrc: '/audio/christmas.mp3' };
     default:
-      return 'info';
+      return { status: 'info', needAlarm: false, alarmSrc: '/audio/christmas.mp3' };
   }
 };
 
 export const AlertCard = (alertInfo: AlertInfo) => {
+  const { status, needAlarm, alarmSrc } = getAlertStrategy(alertInfo.alertStrategy);
   const triggerTime = moment.unix(alertInfo.triggeredTime).format('YYYY-MM-DD HH:mm:ss');
-  const needAlarm = alertInfo.alertStrategy !== 'low';
-
-  const alarmSrc =
-    alertInfo.alertStrategy === 'high' ? ['/audio/prodWarning.mp3'] : ['/audio/christmas.mp3'];
 
   return (
-    <Alert status={getAlertStatus(alertInfo.alertStrategy)}>
+    <Alert status={status}>
       <AlertIcon />
       <Box>
         <AlertTitle fontSize="25px" marginBottom="10px">
@@ -39,7 +42,7 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         </AlertTitle>
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
-          <AcknowledgeBox intervalMin={30} alarmSrc={alarmSrc} needAlarm={needAlarm} />
+          <AcknowledgeBox intervalMin={30} alarmSrc={[alarmSrc]} needAlarm={needAlarm} />
         </Flex>
       </Box>
     </Alert>

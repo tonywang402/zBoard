@@ -38,6 +38,16 @@ const DatadogAlertsOverview = (props: SystemProps) => {
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
       showRefreshButtonPosition="right"
       render={(data: Array<DatadogAlert>) => {
+        const highAlerts = data.filter(
+          (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'high'
+        );
+        const mediumAlerts = data.filter(
+          (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'medium'
+        );
+        const lowAlerts = data.filter(
+          (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'low'
+        );
+
         return (
           <Flex
             flexDirection="column"
@@ -51,25 +61,19 @@ const DatadogAlertsOverview = (props: SystemProps) => {
             maxW="100%"
           >
             <Flex flex-direction="row" gap={10}>
-              {data
-                .filter((DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'high')
-                .map((DatadogAlert) => (
-                  <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
-                ))}
+              {highAlerts.map((alert) => (
+                <AlertCard key={alert.id} {...alert} alertStrategy="high" />
+              ))}
             </Flex>
             <Flex flex-direction="row" gap={10}>
-              {data
-                .filter((DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'medium')
-                .map((DatadogAlert) => (
-                  <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
-                ))}
+              {mediumAlerts.map((alert) => (
+                <AlertCard key={alert.id} {...alert} alertStrategy="medium" />
+              ))}
             </Flex>
             <Flex flex-direction="row" gap={10}>
-              {data
-                .filter((DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() == 'low')
-                .map((DatadogAlert) => (
-                  <AlertCard key={DatadogAlert.id} {...DatadogAlert} />
-                ))}
+              {lowAlerts.map((alert) => (
+                <AlertCard key={alert.id} {...alert} alertStrategy="low" />
+              ))}
             </Flex>
           </Flex>
         );

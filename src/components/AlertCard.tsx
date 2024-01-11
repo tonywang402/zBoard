@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertIcon, AlertTitle, AlertDescription, Box, Alert, Flex } from '@chakra-ui/react';
 import moment from 'moment';
 import AcknowledgeBox from './AcknowledgeBox';
+import PostAlertToWecom from './Alarm/AlarmToWeCom';
 
 export interface AlertInfo {
   env: string;
@@ -16,16 +17,32 @@ type AlertStrategy = {
   status: 'error' | 'warning' | 'info';
   needAlarm: boolean;
   alarmSrc: string;
+  needPostAlertToWeCom: boolean;
 };
 
 const getAlertStrategy = (alertStrategy: string): AlertStrategy => {
   switch (alertStrategy) {
     case 'high':
-      return { status: 'error', needAlarm: true, alarmSrc: '/audio/prodWarning.mp3' };
+      return {
+        status: 'error',
+        needAlarm: true,
+        alarmSrc: '/audio/prodWarning.mp3',
+        needPostAlertToWeCom: true,
+      };
     case 'medium':
-      return { status: 'warning', needAlarm: true, alarmSrc: '/audio/christmas.mp3' };
+      return {
+        status: 'warning',
+        needAlarm: true,
+        alarmSrc: '/audio/christmas.mp3',
+        needPostAlertToWeCom: false,
+      };
     default:
-      return { status: 'info', needAlarm: false, alarmSrc: '/audio/christmas.mp3' };
+      return {
+        status: 'info',
+        needAlarm: false,
+        alarmSrc: '/audio/christmas.mp3',
+        needPostAlertToWeCom: false,
+      };
   }
 };
 
@@ -38,7 +55,9 @@ const formatAlertName = (alertName: string): string => {
 };
 
 export const AlertCard = (alertInfo: AlertInfo) => {
-  const { status, needAlarm, alarmSrc } = getAlertStrategy(alertInfo.alertStrategy);
+  const { status, needAlarm, alarmSrc, needPostAlertToWeCom } = getAlertStrategy(
+    alertInfo.alertStrategy
+  );
   const triggerTime = formatTriggerTime(alertInfo.triggeredTime);
   const alertName = formatAlertName(alertInfo.name);
 
@@ -52,6 +71,7 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
           <AcknowledgeBox intervalMin={30} alarmSrc={[alarmSrc]} needAlarm={needAlarm} />
+          {needPostAlertToWeCom && <PostAlertToWecom />}
         </Flex>
       </Box>
     </Alert>

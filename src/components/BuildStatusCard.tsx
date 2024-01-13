@@ -70,7 +70,7 @@ const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
   const colorScheme = statusColorScheme[buildStatus.status] || 'red';
   const startTime = moment(buildStatus.stopTime).format('YYYY-MM-DD HH:mm:ss');
   return (
-    <Card color="white" bgColor={`${colorScheme}.500`} p="8px" borderWidth="1px" borderRadius="lg">
+    <Card color='white' bgColor={`${colorScheme}.500`} p='8px' borderWidth='1px' borderRadius='lg' maxH="400px">
       <CardHeader>
         <Flex>
           <Heading size="xl">{buildStatus.projectName}</Heading>

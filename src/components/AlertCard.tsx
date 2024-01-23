@@ -71,7 +71,7 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
           <AcknowledgeBox intervalMin={30} alarmSrc={[alarmSrc]} needAlarm={needAlarm} />
-          {needPostAlertToWeCom && <PostAlertToWecom />}
+          {needPostAlertToWeCom && <PostAlertToWecom alertName={alertName} />}
         </Flex>
       </Box>
     </Alert>

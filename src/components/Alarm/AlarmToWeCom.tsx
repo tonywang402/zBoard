@@ -1,8 +1,9 @@
 const url =
   'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=c275c9c6-175e-45f6-955d-eadcd20d9bbf';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast as useChakraToast } from '@chakra-ui/toast';
+import { useAlarmToggle } from '@/pages/AlarmToggleContext';
 
 interface PostAlertToWecomProps {
   alertName: string;
@@ -10,8 +11,13 @@ interface PostAlertToWecomProps {
 
 const PostAlertToWecom = (alertInfo: PostAlertToWecomProps) => {
   const toast = useChakraToast();
+  const { sendAlertToWeComToggle } = useAlarmToggle();
+  const [isSendAlertToWeCom, setIsSendAlertToWeCom] = useState(false);
 
   useEffect(() => {
+    if (!sendAlertToWeComToggle || isSendAlertToWeCom) {
+      return;
+    }
     fetch(url, {
       method: 'POST',
       headers: {
@@ -42,26 +48,28 @@ const PostAlertToWecom = (alertInfo: PostAlertToWecomProps) => {
           isClosable: true,
           position: 'top-right',
         });
+        setIsSendAlertToWeCom(true);
       })
       .catch((error) => {
         () => console.warn(error);
+        setIsSendAlertToWeCom(false);
       });
-    return () => {
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          msgtype: 'text',
-          text: {
-            content: `${alertInfo.alertName} is closed`,
-          },
-        }),
-        mode: 'no-cors',
-      });
-    };
-  }, []);
+    // return () => {
+    //   fetch(url, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //       msgtype: 'text',
+    //       text: {
+    //         content: `${alertInfo.alertName} is closed`,
+    //       },
+    //     }),
+    //     mode: 'no-cors',
+    //   });
+    // };
+  }, [sendAlertToWeComToggle]);
   return <></>;
 };
 

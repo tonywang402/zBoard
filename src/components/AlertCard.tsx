@@ -3,6 +3,7 @@ import { AlertIcon, AlertTitle, AlertDescription, Box, Alert, Flex } from '@chak
 import moment from 'moment';
 import AcknowledgeBox from './AcknowledgeBox';
 import PostAlertToWecom from './Alarm/AlarmToWeCom';
+import { useAlarmToggle } from '@/pages/AlarmToggleContext';
 
 export interface AlertInfo {
   env: string;
@@ -58,6 +59,8 @@ export const AlertCard = (alertInfo: AlertInfo) => {
   const { status, needAlarm, alarmSrc, needPostAlertToWeCom } = getAlertStrategy(
     alertInfo.alertStrategy
   );
+
+  const canPostAlertToWeCom = needPostAlertToWeCom;
   const triggerTime = formatTriggerTime(alertInfo.triggeredTime);
   const alertName = formatAlertName(alertInfo.name);
 
@@ -71,7 +74,7 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
           <AcknowledgeBox intervalMin={30} alarmSrc={[alarmSrc]} needAlarm={needAlarm} />
-          {needPostAlertToWeCom && <PostAlertToWecom alertName={alertName} />}
+          {canPostAlertToWeCom && <PostAlertToWecom alertName={alertName} />}
         </Flex>
       </Box>
     </Alert>

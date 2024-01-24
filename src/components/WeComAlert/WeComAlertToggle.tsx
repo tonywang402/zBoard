@@ -5,7 +5,7 @@ import { WarningIcon } from '@chakra-ui/icons';
 
 const WeComAlertToggle = () => {
   const { sendAlertToWeComToggle, setSendAlertToWeComToggle } = useAlarmToggle();
-  const note = `After the alarm is enabled, it will only sound Prod alert to sepecify WeCom group.`;
+  const note = `After the alarm is enabled, it will only sent Prod alert to sepecify WeCom group.`;
 
   return (
     <>

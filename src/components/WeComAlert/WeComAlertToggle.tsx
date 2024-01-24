@@ -5,11 +5,7 @@ import { WarningIcon } from '@chakra-ui/icons';
 
 const WeComAlertToggle = () => {
   const { sendAlertToWeComToggle, setSendAlertToWeComToggle } = useAlarmToggle();
-  const note = `After the alarm is enabled, it will only sound during working hours 
-                (9:30-11:30, 13:30-18:00 Monday to Friday). 
-                The alarm will stop when the ACK button is clicked. 
-                Otherwise, the alarm will repeat every 30 mins!
-                `;
+  const note = `After the alarm is enabled, it will only sound Prod alert to sepecify WeCom group.`;
 
   return (
     <>

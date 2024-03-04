@@ -28,14 +28,14 @@ const getAlertStrategy = (alertStrategy: string): AlertStrategy => {
         status: 'error',
         needAlarm: true,
         alarmSrc: '/audio/prodWarning.mp3',
-        needPostAlertToWeCom: true,
+        needPostAlertToWeCom: false,
       };
     case 'medium':
       return {
         status: 'warning',
         needAlarm: true,
         alarmSrc: '/audio/christmas.mp3',
-        needPostAlertToWeCom: false,
+        needPostAlertToWeCom: true,
       };
     default:
       return {
@@ -74,7 +74,13 @@ export const AlertCard = (alertInfo: AlertInfo) => {
         <Flex justifyContent="space-between" alignItems="center">
           <AlertDescription fontSize="20px">Created at: {triggerTime}</AlertDescription>
           <AcknowledgeBox intervalMin={30} alarmSrc={[alarmSrc]} needAlarm={needAlarm} />
-          {canPostAlertToWeCom && <PostAlertToWecom alertName={alertName} />}
+          {canPostAlertToWeCom && (
+            <PostAlertToWecom
+              alertName={alertName}
+              triggerTime={triggerTime}
+              notificationId={alertInfo.id}
+            />
+          )}
         </Flex>
       </Box>
     </Alert>

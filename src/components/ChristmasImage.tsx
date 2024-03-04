@@ -11,11 +11,13 @@ const DefaultImage = () => {
     //   src="https://media.tenor.com/K6E74DP8JWgAAAAi/happy-sumikko-gurashi.gif"
     //   alt="happy new year"
     // />
-    <Image
-      src="https://wimg.588ku.com/gif620/23/11/07/7af3f73bcd0bb281f38b97d6cc3ccfe6.gif"
-      alt="lunar new year 2024"
-      height="68%"
-    />
+    <div>
+      <Image
+        src="https://wimg.588ku.com/gif620/23/11/07/7af3f73bcd0bb281f38b97d6cc3ccfe6.gif"
+        alt="lunar new year 2024"
+        height="50%"
+      />
+    </div>
   );
 };
 

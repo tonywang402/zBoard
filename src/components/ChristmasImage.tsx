@@ -13,9 +13,9 @@ const DefaultImage = () => {
     // />
     <div>
       <Image
-        src="https://wimg.588ku.com/gif620/23/11/07/7af3f73bcd0bb281f38b97d6cc3ccfe6.gif"
-        alt="lunar new year 2024"
-        height="50%"
+        src="https://happythanksgivingtoall.com/wp-content/uploads/2024/02/Happy-International-Womens-Day-2024-GIFs.gif"
+        alt="women days"
+        height="90%"
       />
     </div>
   );

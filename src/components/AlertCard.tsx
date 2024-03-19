@@ -33,7 +33,7 @@ const getAlertStrategy = (alertStrategy: string): AlertStrategy => {
     case 'medium':
       return {
         status: 'warning',
-        needAlarm: true,
+        needAlarm: false,
         alarmSrc: '/audio/christmas.mp3',
         needPostAlertToWeCom: true,
       };

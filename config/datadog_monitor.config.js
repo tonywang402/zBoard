@@ -31,31 +31,6 @@ export const monitorConfig = {
             },
           ],
         },
-        {
-          projectName: 'api-aggregator',
-          monitorConfigs: [
-            // {
-            //   env: 'ci',
-            //   priority: 4,
-            //   alertStrategy: 'low',
-            // },
-            // {
-            //   env: 'int',
-            //   priority: 3,
-            //   alertStrategy: 'medium',
-            // },
-            {
-              env: 'sc',
-              priority: 2,
-              alertStrategy: 'medium',
-            },
-            {
-              env: 'prod',
-              priority: 1,
-              alertStrategy: 'high',
-            },
-          ],
-        },
       ],
     },
   },

@@ -12,13 +12,37 @@ import {
   MenuList,
   MenuItem,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
 import { siteConfig } from '@/../../config/site.config';
 import ThemeToggle from '@/components/ThemeToggle';
-import { ChevronDownIcon, MinusIcon } from '@chakra-ui/icons';
+import { ChatIcon, ChevronDownIcon, LockIcon, MinusIcon } from '@chakra-ui/icons';
 import Link from 'next/link';
 import AlarmToggle from './Alarm/AlarmToggle';
 import WeComAlertToggle from './WeComAlert/WeComAlertToggle';
+
+function InfoToast() {
+  const toast = useToast();
+  return (
+    <IconButton
+      onClick={() =>
+        toast({
+          icon: <LockIcon />,
+          position: 'top',
+          isClosable: true,
+          duration: null,
+          title: 'PIT Week #3 Announcement',
+          description:
+            'Freeze our deployments on the SC environment from March 18th to March 28th.',
+        })
+      }
+      aria-label={''}
+      icon={<ChatIcon />}
+    >
+      Info
+    </IconButton>
+  );
+}
 
 const CollapseNavbar = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -75,6 +99,7 @@ const CollapseNavbar = () => {
                 </Link>
               </MenuList>
             </Menu>
+            <InfoToast />
             <ThemeToggle />
             <IconButton
               aria-label="Hide Navbar"

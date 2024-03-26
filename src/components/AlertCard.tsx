@@ -28,14 +28,14 @@ const getAlertStrategy = (alertStrategy: string): AlertStrategy => {
         status: 'error',
         needAlarm: true,
         alarmSrc: '/audio/prodWarning.mp3',
-        needPostAlertToWeCom: false,
+        needPostAlertToWeCom: true,
       };
     case 'medium':
       return {
         status: 'warning',
         needAlarm: false,
         alarmSrc: '/audio/christmas.mp3',
-        needPostAlertToWeCom: true,
+        needPostAlertToWeCom: false,
       };
     default:
       return {

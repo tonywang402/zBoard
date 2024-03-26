@@ -13,9 +13,9 @@ const DefaultImage = () => {
     // />
     <div>
       <Image
-        src="https://happythanksgivingtoall.com/wp-content/uploads/2024/02/Happy-International-Womens-Day-2024-GIFs.gif"
-        alt="women days"
-        height="90%"
+        src="https://media1.tenor.com/m/wl1Msm0vJ9gAAAAC/earth-day-happy-earth-day.gif"
+        alt="earth-day-happy-earth-day"
+        height="85%"
       />
     </div>
   );

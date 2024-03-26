@@ -12,11 +12,7 @@ const DefaultImage = () => {
     //   alt="happy new year"
     // />
     <div>
-      <Image
-        src="https://media1.tenor.com/m/wl1Msm0vJ9gAAAAC/earth-day-happy-earth-day.gif"
-        alt="earth-day-happy-earth-day"
-        height="85%"
-      />
+      <Image src="/earth-day-happy-earth-day.gif" alt="earth-day-happy-earth-day" height="85%" />
     </div>
   );
 };

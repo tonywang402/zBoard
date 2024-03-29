@@ -32,8 +32,7 @@ function InfoToast() {
           isClosable: true,
           duration: null,
           title: 'PIT Week #3 Announcement',
-          description:
-            'Freeze our deployments on the SC environment from March 18th to March 28th.',
+          description: 'Freeze our deployments on the SC environment from March 18th to April 3th.',
         })
       }
       aria-label={''}

@@ -30,7 +30,7 @@ const DatadogAlertsOverview = (props: SystemProps) => {
   return (
     <RefreshWrapper
       {...props}
-      maxH="450px"
+      maxH="350px"
       minW="150px"
       title={'Datadog Alerts'}
       showRefreshButton={true}

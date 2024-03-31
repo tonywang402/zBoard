@@ -3,7 +3,6 @@ import { AlertIcon, AlertTitle, AlertDescription, Box, Alert, Flex } from '@chak
 import moment from 'moment';
 import AcknowledgeBox from './AcknowledgeBox';
 import PostAlertToWecom from './Alarm/AlarmToWeCom';
-import { useAlarmToggle } from '@/pages/AlarmToggleContext';
 
 export interface AlertInfo {
   env: string;
@@ -65,7 +64,7 @@ export const AlertCard = (alertInfo: AlertInfo) => {
   const alertName = formatAlertName(alertInfo.name);
 
   return (
-    <Alert status={status}>
+    <Alert status={status} height="120px">
       <AlertIcon />
       <Box>
         <AlertTitle fontSize="25px" marginBottom="10px">

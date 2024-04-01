@@ -19,11 +19,7 @@ const DefaultImage = () => {
     //   />
     // </div>
     <div>
-      <Image
-        src="https://i.pinimg.com/originals/82/ed/f2/82edf20ece5ad261b38e18beac2c03c1.gif"
-        alt="spring"
-        height="80%"
-      />
+      <Image src="/flower.gif" alt="spring" height="80%" />
     </div>
   );
 };

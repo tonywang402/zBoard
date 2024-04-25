@@ -17,7 +17,7 @@ export default function Home() {
             <DatadogMonitorOverview width="240px" />
             <VStack flex="1" h="100%" overflow="hidden">
               <DatadogAlertsOverview />
-              <HStack h="950px" w="100%">
+              <HStack w="100%" minH="572px">
                 <BuildStatusOverview flex="75%" h="100%" />
                 {/* <TicketStatusOverview flex="25%" h="100%" /> */}
               </HStack>

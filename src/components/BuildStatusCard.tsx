@@ -110,7 +110,7 @@ const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
       </CardBody>
       <CardFooter justify="space-around">
         {colorScheme === 'red' && (
-          <AcknowledgeBox intervalMin={30} alarmSrc={['/audio/always_with_me.mp3']} />
+          <AcknowledgeBox intervalMin={30} alarmSrc={['/audio/river_flows_in_you.mp3']} />
         )}
       </CardFooter>
     </Card>

@@ -18,8 +18,8 @@ const DefaultImage = () => {
     //     height="85%"
     //   />
     // </div>
-    <div>
-      <Image src="/flower.gif" alt="spring" height="80%" />
+    <div style={{ marginTop: '-10px' }}>
+      <Image src="/astronaut.gif" alt="astronaut" height="75%" />
     </div>
   );
 };

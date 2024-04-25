@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useErrorToast } from '@/lib/customToast';
 import RefreshWrapper from './RefreshWrapper';
 import { Flex, SystemProps } from '@chakra-ui/react';
@@ -16,14 +16,16 @@ interface DatadogAlert {
 
 const DatadogAlertsOverview = (props: SystemProps) => {
   const toastError = useErrorToast();
+  const [data, setData] = useState<DatadogAlert[]>([]);
 
   const fetchData = async () => {
     const monitor = await fetch(`/api/datadog_alert`);
     if (monitor.ok) {
+      setData(await monitor.json());
       return await monitor.json();
     } else {
       toastError(await monitor.text());
-      return [];
+      return data;
     }
   };
 

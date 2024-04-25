@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useErrorToast } from '@/lib/customToast';
+import React from 'react';
 import RefreshWrapper from './RefreshWrapper';
 import { Flex, SystemProps } from '@chakra-ui/react';
 import { monitorConfig } from '../../config/datadog_monitor.config';
@@ -15,17 +14,13 @@ interface DatadogAlert {
 }
 
 const DatadogAlertsOverview = (props: SystemProps) => {
-  const toastError = useErrorToast();
-  const [data, setData] = useState<DatadogAlert[]>([]);
-
   const fetchData = async () => {
     const monitor = await fetch(`/api/datadog_alert`);
     if (monitor.ok) {
-      setData(await monitor.json());
-      return await monitor.json();
-    } else {
-      toastError(await monitor.text());
+      const data = await monitor.json();
       return data;
+    } else {
+      return [];
     }
   };
 
@@ -39,6 +34,7 @@ const DatadogAlertsOverview = (props: SystemProps) => {
       onRefresh={() => fetchData()}
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
       showRefreshButtonPosition="right"
+      remainOldDataOnError={true}
       render={(data: Array<DatadogAlert>) => {
         const highAlerts = data.filter(
           (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'high'

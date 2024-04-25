@@ -16,7 +16,6 @@ const fetchAlertStatus = async (notificationId: number) => {
   if (result.ok) {
     return await result.json();
   } else {
-    toastError(await result.text());
     return '';
   }
 };
@@ -65,6 +64,7 @@ https://shared-confluence.mercedes-benz.polygran.de/display/OTR/%5BGuidance%5D+H
         () => console.warn(error);
         setIsSendAlertToWeCom(false);
       });
+
     return () => {
       closeAlert(alertInfo);
     };

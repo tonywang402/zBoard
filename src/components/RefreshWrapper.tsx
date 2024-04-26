@@ -47,7 +47,7 @@ const RefreshWrapper = <T,>({
     setIsRefreshing(true);
     try {
       const newData = await onRefresh();
-      if (!remainOldDataOnError || (remainOldDataOnError && !isEmpty(newData))) {
+      if (!remainOldDataOnError || newData !== undefined) {
         setData(newData);
       }
       setLastUpdatedAt(moment().format('HH:mm:ss'));

@@ -17,10 +17,9 @@ const DatadogAlertsOverview = (props: SystemProps) => {
   const fetchData = async () => {
     const monitor = await fetch(`/api/datadog_alert`);
     if (monitor.ok) {
-      const data = await monitor.json();
-      return data;
+      return await monitor.json();
     } else {
-      return [];
+      return undefined;
     }
   };
 

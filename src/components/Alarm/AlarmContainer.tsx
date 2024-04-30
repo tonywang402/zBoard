@@ -25,7 +25,7 @@ const isWorkingTime = () => {
   );
 };
 
-const canPlay = () => {
+export const canPlay = () => {
   return isWeekday() && isWorkingTime();
 };
 

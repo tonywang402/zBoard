@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAlarmToggle } from '@/pages/AlarmToggleContext';
+import { canPlay as isWorkingTime } from './AlarmContainer';
 
 interface PostAlertToWecomProps {
   alertName: string;
@@ -49,6 +50,12 @@ https://shared-confluence.mercedes-benz.polygran.de/display/OTR/%5BGuidance%5D+H
       return;
     }
 
+    if (!isWorkingTime()) {
+      if (!alertInfo.alertName.includes('Health Check')) {
+        return;
+      }
+    }
+
     fetch(url, {
       method: 'POST',
       headers: {
@@ -57,7 +64,7 @@ https://shared-confluence.mercedes-benz.polygran.de/display/OTR/%5BGuidance%5D+H
       body: JSON.stringify(textNotification),
       mode: 'no-cors',
     })
-      .then((response) => {
+      .then(() => {
         setIsSendAlertToWeCom(true);
       })
       .catch((error) => {

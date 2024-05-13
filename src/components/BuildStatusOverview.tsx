@@ -7,13 +7,13 @@ import { useErrorToast } from '@/lib/customToast';
 const BuildStatusOverview = (props: SystemProps) => {
   const toastError = useErrorToast();
   const statusPriority: { [key: string]: number } = {
-    failed: 1,
-    failure: 2,
-    startup_failure: 3,
-    running: 4,
-    in_progress: 5,
-    on_hold: 6,
-    queued: 7,
+    in_progress: 1,
+    running: 2,
+    queued: 3,
+    on_hold: 4,
+    failed: 5,
+    failure: 6,
+    startup_failure: 7,
     pending: 8,
     requested: 9,
     canceled: 10,

@@ -12,7 +12,7 @@ import {
 import { RepeatIcon } from '@chakra-ui/icons';
 import moment from 'moment';
 import { isEmpty } from 'lodash';
-import DefaultImage from './ChristmasImage';
+import DefaultImage from './DefaultImage';
 
 interface RefreshWrapperProps<T> {
   title: string;

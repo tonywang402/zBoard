@@ -7,32 +7,7 @@ export const monitorConfig = {
       refreshIntervalSeconds: 30,
       projects: [
         {
-          projectName: 'handover',
-          monitorConfigs: [
-            {
-              env: 'ci',
-              priority: 4,
-              alertStrategy: 'low',
-            },
-            {
-              env: 'int',
-              priority: 3,
-              alertStrategy: 'medium',
-            },
-            {
-              env: 'sc',
-              priority: 2,
-              alertStrategy: 'medium',
-            },
-            {
-              env: 'prod',
-              priority: 1,
-              alertStrategy: 'high',
-            },
-          ],
-        },
-        {
-          projectName: 'api-aggregator',
+          projectName: 'demo',
           monitorConfigs: [
             {
               env: 'ci',

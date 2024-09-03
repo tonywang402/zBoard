@@ -19,7 +19,7 @@ const DefaultImage = () => {
     //   />
     // </div>
     <div style={{ marginTop: '-20px' }}>
-      <Image src="/mothers-day.gif" alt="mother's day" height="55%" />
+      <Image src="/moon-rabbi.gif" alt="mother's day" height="85%" />
     </div>
   );
 };

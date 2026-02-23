@@ -1,4 +1,4 @@
-import { VStack, HStack } from '@chakra-ui/react';
+import { VStack, HStack, Text } from '@chakra-ui/react';
 import BuildStatusOverview from '@/components/BuildStatusOverview';
 import CollapseNavbar from '@/components/CollapseNavbar';
 import UpdateChecker from '@/components/UpdateChecker';
@@ -6,12 +6,17 @@ import AlarmToggleProvider from './AlarmToggleContext';
 import DatadogMonitorOverview from '@/components/DatadogMonitorOverview';
 import DatadogAlertsOverview from '@/components/DatadogAlertsOverview';
 
+function helloWorld() {
+  return 'Hello World!';
+}
+
 export default function Home() {
   return (
     <AlarmToggleProvider>
       <VStack w="100vw" h="100vh" p="8px" pt="0">
         <UpdateChecker />
         <CollapseNavbar />
+        <Text fontSize="lg">{helloWorld()}</Text>
         <VStack px="8px" flex="1" width="100vw" overflow="hidden">
           <HStack w="100%" h="100%">
             <DatadogMonitorOverview width="240px" />

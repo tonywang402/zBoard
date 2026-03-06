@@ -1,0 +1,9 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e \"const fm = require\\('jest-fetch-mock'\\); fm\\.enableMocks\\(\\); console\\.log\\('fetch type:', typeof global\\.fetch\\); console\\.log\\('is mock:', typeof global\\.fetch\\.mockResponseOnce\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "npx jest": true
+    }
+}

@@ -20,7 +20,7 @@ const handler: NextApiHandler = async (req, res) => {
     .catch((err) => res.status(500).send(err.message));
 };
 
-const getAllBuildStatus = async () => {
+export const getAllBuildStatus = async () => {
   if (zendeskConfig.enabled) {
     return await fetchTickets();
   }

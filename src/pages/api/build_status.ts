@@ -11,7 +11,7 @@ const handler: NextApiHandler = async (req, res) => {
     .catch((err) => res.status(500).send(err.message));
 };
 
-const getCIStatus = async () => {
+export const getCIStatus = async () => {
   if (
     !buildStatusConfig.datasource.github.enabled &&
     !buildStatusConfig.datasource.circleCI.enabled

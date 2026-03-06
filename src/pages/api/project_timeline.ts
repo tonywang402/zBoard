@@ -86,7 +86,7 @@ const fetchCards = async (startDate: string, endDate: string) => {
   );
 };
 
-const buildCardInfo = (card: TimelineCard, buildUserInfo: (userId: number) => User | null) => {
+export const buildCardInfo = (card: TimelineCard, buildUserInfo: (userId: number) => User | null) => {
   const [startDate, endDate] = calculateStartEndDate(card);
   const getColumnName = (columnId: number) => {
     return kanbanConfig.monitorColumns.find((c) => c.id === columnId)?.name;
@@ -124,7 +124,7 @@ const fetchUserInfo = async (userIds: number[]) => {
   };
 };
 
-const calculateStartEndDate = (card: TimelineCard): [startDate: string, endDate: string] => {
+export const calculateStartEndDate = (card: TimelineCard): [startDate: string, endDate: string] => {
   // Find the first time a card was moved to configured columns
   const startTime = card.transitions?.find((transition: CardTransition) =>
     kanbanConfig.startColumns.map(({ id }) => id).includes(transition.column_id)

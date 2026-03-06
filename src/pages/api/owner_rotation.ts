@@ -13,7 +13,7 @@ const handler: NextApiHandler = async (req, res) => {
     .catch((err) => res.status(500).send(err.message));
 };
 
-const getAllOwners = async () => {
+export const getAllOwners = async () => {
   if (ownerRotationConfig.datasource.localData.enabled) {
     return ownerRotationConfig.datasource.localData.rotations;
   }
@@ -65,7 +65,7 @@ const dateFormat = 'YYYY-MM-DD';
 const isAfter = (date1: string, date2: string) =>
   moment(date1, dateFormat).isAfter(moment(date2, dateFormat));
 
-const sortMembers = (rows: { [key: string]: any }[]) => {
+export const sortMembers = (rows: { [key: string]: any }[]) => {
   let members: Member[] = [];
   if (rows?.every((it) => datePattern.test(it.startDate))) {
     rows.sort((a, b) => (isAfter(a.startDate, b.startDate) ? 1 : -1));

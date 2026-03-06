@@ -78,7 +78,7 @@ const searchMonitor = async (
   }
 };
 
-const getMonitorColor = (counts?: v1.MonitorSearchResponseCounts) => {
+export const getMonitorColor = (counts?: v1.MonitorSearchResponseCounts) => {
   if (!counts || !counts.status || counts.status.length === 0) {
     return 'grey';
   }

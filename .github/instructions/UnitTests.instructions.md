@@ -1,10 +1,12 @@
 ---
-name: "Unit Testing Guidelines"
-description: "Standardized testing conventions and boilerplate guidelines for Unit Tests"
+name: "Unit Tests"
+description: "Unit test boilerplate, conventions, and test case guide for zBoard API route business logic and data transformations."
 applyTo: "**/tests/**"
 ---
 
-# 1. Purpose of this Test Type
+# Unit Tests
+
+## Purpose
 
 These unit tests target the **pure business logic and config-branch decision functions** across the CI, rotation, timeline, ticketing, and monitoring API handlers. The critical paths to verify are:
 
@@ -14,38 +16,11 @@ These unit tests target the **pure business logic and config-branch decision fun
 - **Pagination loop termination** in `fetchTickets` — the `while (nextPageUrl)` loop must be proven to terminate and accumulate correctly.
 - **`_.orderBy` sort + `[0]` selection** in `getLatestPipeline` and `getLatestWorkflow` — ordering direction determines which pipeline/workflow is "latest."
 
-> **Required exports before testing** — these private functions must become named exports to be unit-testable: `getCIStatus` (build_status.ts), `sortMembers` (owner_rotation.ts), `calculateStartEndDate` & `buildCardInfo` (project_timeline.ts), `getMonitorColor` (datadog.ts).
+> **Required exports before testing** — these private functions must become named exports to be unit-testable: `getCIStatus` (build_status.ts), `sortMembers` (owner_rotation.ts), `calculateStartEndDate` & `buildCardInfo` (project_timeline.ts), `getMonitorColor` (datadog.ts), `getAllBuildStatus` (ticket_status.ts).
 
 ---
 
-# 2. Standardized Boilerplate
-
-Install Jest with ts-jest (not yet in `package.json`):
-
-```bash
-npm install --save-dev jest ts-jest @types/jest jest-fetch-mock
-```
-
-Add to `package.json`:
-
-```json
-"scripts": { "test": "jest" },
-"jest": {
-  "preset": "ts-jest",
-  "testEnvironment": "node",
-  "moduleNameMapper": { "^@/(.*)$": "<rootDir>/src/$1" },
-  "setupFiles": ["./jest.setup.ts"]
-}
-```
-
-**jest.setup.ts** (root of project):
-
-```typescript
-import fetchMock from 'jest-fetch-mock';
-fetchMock.enableMocks();
-```
-
----
+## Boilerplate
 
 **`src/pages/api/__tests__/build_status.test.ts`**
 
@@ -135,7 +110,7 @@ const mockPipelineResponse = {
       id: 'pipe-002',
       updated_at: '2026-02-26T08:00:00Z',
       trigger: { actor: { login: 'dev-bob', avatar_url: 'https://avatars.gh/bob' } },
-      vcs: { commit: null }, // tests the || 'automatically triggered' branch
+      vcs: { commit: null },
     },
   ],
 };
@@ -558,7 +533,7 @@ describe('getAllBuildStatus — Zendesk ticket fetching', () => {
 
 ---
 
-# 3. Recommended Conventions
+## Conventions
 
 - **`jest.mock` path must exactly mirror the import string in the source file.** `circle_build_status.ts` imports `'../../../config/build_status.config'`, so `jest.mock` must use that exact string. Path alias mismatches cause silent mock bypass — the real config runs and tests produce false-green or false-red results.
 
@@ -572,7 +547,7 @@ describe('getAllBuildStatus — Zendesk ticket fetching', () => {
 
 ---
 
-# 4. Test Case Writing Guide
+## Test Case Guide
 
 **`getCIStatus` — build_status.ts**
 - [ ] Both `circleCI.enabled=false` AND `github.enabled=false` → calls `getBuildStatusFakeData`, skips both fetchers
@@ -632,13 +607,3 @@ describe('getAllBuildStatus — Zendesk ticket fetching', () => {
 - [ ] Single page (`next_page: null`) → returns tickets from one response only
 - [ ] Multi-page (`next_page` set, then `null`) → concatenates all pages into `allTickets`
 - [ ] Any page returns `!response.ok` → throws `Error('failed to fetch zendesk tickets')`
-
-**`fetchMonitorAlertData` — datadog_alert.ts**
-- [ ] `monitorConfig.enabled=false` → returns `[]`
-- [ ] `enabled=true` → calls `searchAlerts` per project, returns `.flat()` result
-- [ ] `searchAlerts` filters out `undefined` values from alert array
-
-**`searchMonitor` — datadog_alert_status.ts**
-- [ ] Successful API call → returns `monitorData?.status`
-- [ ] `monitors[0]` is `undefined` → returns `undefined` without throwing
-- [ ] `apiInstance.searchMonitors` throws → re-throws as `Error('Request to Datadog API failed')`

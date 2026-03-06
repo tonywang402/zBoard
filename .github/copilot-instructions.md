@@ -23,3 +23,11 @@ Each feature has its own detailed Documentation and Guidance file.
 Next.js 13 (Pages Router) + TypeScript 5. UI built with Chakra UI v2. All integrations run server-side via Next.js API routes — no secrets are ever sent to the browser. Config-as-code via plain JS files in `config/`. Every data source has a fake data fallback so the board works out of the box without any tokens.
 
 For full details on directory structure, key components, API routes, configuration files, authentication, and code conventions, see [TechStack&Architecture.instructions.md](instructions/TechStack&Architecture.instructions.md).
+
+---
+
+## Testing
+
+The project has no tests yet. The testing architecture spans three layers: **unit tests** for API route business logic and data transformations (Jest + ts-jest + jest-fetch-mock), **component tests** for UI state and date-based rendering logic (React Testing Library), and **middleware tests** for the auth gate branches.
+
+For the full architecture, tooling setup, boilerplate, conventions, and test case guide, see [TestingArchitecture.instructions.md](instructions/TestingArchitecture.instructions.md).

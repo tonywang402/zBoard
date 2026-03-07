@@ -9,21 +9,27 @@ const repos = Array.from({ length: 9 }).map(() => {
 
 export const getBuildStatusFakeData = () => {
   return repos.map((repo) => {
+    const status = faker.helpers.arrayElement([
+      'success',
+      'failed',
+      'failure',
+      'on_hold',
+      'running',
+      'canceled',
+      'unauthorized',
+    ]);
     return {
       projectName: repo.projectName,
       branch: repo.branch,
-      status: faker.helpers.arrayElement([
-        'success',
-        'failed',
-        'on_hold',
-        'running',
-        'canceled',
-        'unauthorized',
-      ]),
+      status,
       stopTime: faker.date.recent(1).toISOString(),
       username: faker.name.fullName(),
       avatarUrl: faker.image.avatar(),
       commitSubject: faker.git.commitMessage(),
+      failedJobInfo:
+        status === 'failure'
+          ? [{ jobName: 'build', failedSteps: ['Run unit tests'] }]
+          : undefined,
     };
   });
 };

@@ -77,5 +77,122 @@ describe('getAllGitHubStatus', () => {
     mockFetch.mockReturnValueOnce(errJson({ message: 'Bad credentials' }, 401));
     await expect(getAllGitHubStatus()).rejects.toThrow('{"message":"Bad credentials"}');
   });
+
+  it('fetches jobs_url and returns failedJobInfo when conclusion is "failure"', async () => {
+    mockFetch
+      .mockReturnValueOnce(okJson({
+        workflow_runs: [{
+          status: 'completed',
+          conclusion: 'failure',
+          updated_at: '2026-02-27T12:00:00Z',
+          jobs_url: 'https://api.github.com/repos/microsoft/vscode/actions/runs/999/jobs',
+          triggering_actor: { login: 'jsmith', avatar_url: 'https://avatars.gh/jsmith' },
+          head_commit: { message: 'fix: something' },
+        }],
+      }))
+      .mockReturnValueOnce(okJson({
+        total_count: 1,
+        jobs: [
+          {
+            name: 'build',
+            conclusion: 'failure',
+            steps: [
+              { name: 'Set up Node', conclusion: 'success', number: 1 },
+              { name: 'Run unit tests', conclusion: 'failure', number: 2 },
+              { name: 'Upload artifacts', conclusion: 'skipped', number: 3 },
+            ],
+          },
+          {
+            name: 'lint',
+            conclusion: 'success',
+            steps: [{ name: 'Run ESLint', conclusion: 'success', number: 1 }],
+          },
+        ],
+      }));
+
+    const [result] = await getAllGitHubStatus();
+    expect(result.status).toBe('failure');
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      'https://api.github.com/repos/microsoft/vscode/actions/runs/999/jobs',
+      expect.objectContaining({ headers: { Authorization: 'Bearer ghp_fake_token' } }),
+    );
+    expect(result.failedJobInfo).toEqual([
+      { jobName: 'build', failedSteps: ['Run unit tests'] },
+    ]);
+  });
+
+  it('does not fetch jobs_url and leaves failedJobInfo undefined when conclusion is "success"', async () => {
+    mockFetch.mockReturnValueOnce(okJson({
+      workflow_runs: [{
+        status: 'completed',
+        conclusion: 'success',
+        updated_at: '2026-02-27T12:00:00Z',
+        jobs_url: 'https://api.github.com/repos/microsoft/vscode/actions/runs/999/jobs',
+        triggering_actor: { login: 'jsmith', avatar_url: 'https://avatars.gh/jsmith' },
+        head_commit: { message: 'fix: all good' },
+      }],
+    }));
+
+    const [result] = await getAllGitHubStatus();
+    expect(result.status).toBe('success');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(result.failedJobInfo).toBeUndefined();
+  });
+
+  it('trims job name to the last slash segment when job name contains "/"', async () => {
+    mockFetch
+      .mockReturnValueOnce(okJson({
+        workflow_runs: [{
+          status: 'completed',
+          conclusion: 'failure',
+          updated_at: '2026-02-27T12:00:00Z',
+          jobs_url: 'https://api.github.com/repos/microsoft/vscode/actions/runs/999/jobs',
+          triggering_actor: { login: 'jsmith', avatar_url: 'https://avatars.gh/jsmith' },
+          head_commit: { message: 'fix: broken' },
+        }],
+      }))
+      .mockReturnValueOnce(okJson({
+        total_count: 2,
+        jobs: [
+          {
+            name: 'provider_verify_pact / verify-pact-as-provider',
+            conclusion: 'failure',
+            steps: [{ name: 'Run pact test', conclusion: 'failure', number: 1 }],
+          },
+          {
+            name: 'deploy_and_test',
+            conclusion: 'failure',
+            steps: [{ name: 'Functional test', conclusion: 'failure', number: 1 }],
+          },
+        ],
+      }));
+
+    const [result] = await getAllGitHubStatus();
+    expect(result.failedJobInfo).toEqual([
+      { jobName: 'verify-pact-as-provider', failedSteps: ['Run pact test'] },
+      { jobName: 'deploy_and_test', failedSteps: ['Functional test'] },
+    ]);
+  });
+
+  it('returns failedJobInfo as empty array when jobs API call fails', async () => {
+    mockFetch
+      .mockReturnValueOnce(okJson({
+        workflow_runs: [{
+          status: 'completed',
+          conclusion: 'failure',
+          updated_at: '2026-02-27T12:00:00Z',
+          jobs_url: 'https://api.github.com/repos/microsoft/vscode/actions/runs/999/jobs',
+          triggering_actor: { login: 'jsmith', avatar_url: 'https://avatars.gh/jsmith' },
+          head_commit: { message: 'fix: broken' },
+        }],
+      }))
+      .mockReturnValueOnce(errJson({ message: 'Not Found' }, 404));
+
+    const [result] = await getAllGitHubStatus();
+    expect(result.status).toBe('failure');
+    expect(result.failedJobInfo).toEqual([]);
+  });
 });
 

@@ -52,7 +52,45 @@ interface SimpleCommit {
   } | null;
 }
 
+interface Step {
+  name: string;
+  conclusion: string | null;
+  number: number;
+}
+
+interface Job {
+  name: string;
+  conclusion: string | null;
+  steps?: Step[];
+}
+
+interface JobsResponse {
+  total_count: number;
+  jobs: Job[];
+}
+
+export interface FailedJobInfo {
+  jobName: string;
+  failedSteps: string[];
+}
+
 const githubActionsConfig = buildStatusConfig.datasource.github;
+
+const getFailedJobInfo = async (jobsUrl: string): Promise<FailedJobInfo[]> => {
+  const response = await fetch(jobsUrl, {
+    headers: { Authorization: `Bearer ${githubActionsConfig.apiToken}` },
+  });
+  if (!response.ok) return [];
+  const json: JobsResponse = await response.json();
+  return json.jobs
+    .filter((job) => job.conclusion === 'failure')
+    .map((job) => ({
+      jobName: job.name.includes('/') ? job.name.split('/').pop()!.trim() : job.name,
+      failedSteps: (job.steps ?? [])
+        .filter((step) => step.conclusion === 'failure' || step.conclusion === 'timed_out')
+        .map((step) => step.name),
+    }));
+};
 
 const handler: NextApiHandler = async (req, res) => {
   getAllGitHubStatus()
@@ -91,15 +129,21 @@ const getStatus = async ({
     throw new Error(JSON.stringify(json));
   }
   const workflowRun = json.workflow_runs[0];
+  const effectiveStatus = workflowRun.status === 'completed' ? workflowRun.conclusion : workflowRun.status;
+  const failedJobInfo =
+    effectiveStatus === 'failure'
+      ? await getFailedJobInfo(workflowRun.jobs_url)
+      : undefined;
   return {
     platform: 'Github',
     projectName: projectName,
     branch: branch,
-    status: workflowRun.status === 'completed' ? workflowRun.conclusion : workflowRun.status,
+    status: effectiveStatus,
     stopTime: workflowRun.updated_at,
     username: workflowRun.triggering_actor?.login,
     avatarUrl: workflowRun.triggering_actor?.avatar_url,
     commitSubject: workflowRun.head_commit?.message,
+    failedJobInfo,
   };
 };
 

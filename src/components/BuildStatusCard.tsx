@@ -9,6 +9,14 @@ import {
   Flex,
   Heading,
   HStack,
+  List,
+  ListItem,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
   Text,
   VStack,
   CardHeader,
@@ -28,6 +36,7 @@ export interface BuildStatus {
   username: string;
   avatarUrl: string;
   commitSubject: string;
+  failedJobInfo?: { jobName: string; failedSteps: string[] }[];
 }
 
 interface StatusColorScheme {
@@ -66,7 +75,9 @@ export const statusColorScheme: StatusColorScheme = {
 const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
   const colorScheme = statusColorScheme[buildStatus.status] || 'red';
   const startTime = moment(buildStatus.stopTime).format('YYYY-MM-DD HH:mm:ss');
-  return (
+  const showPopover = colorScheme === 'red' && !!buildStatus.failedJobInfo?.length;
+
+  const card = (
     <Card
       color="white"
       bgColor={`${colorScheme}.500`}
@@ -106,6 +117,30 @@ const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
         </Flex>
       </CardBody>
     </Card>
+  );
+
+  if (!showPopover) return card;
+
+  return (
+    <Popover trigger="hover" placement="top">
+      <PopoverTrigger>{card}</PopoverTrigger>
+      <PopoverContent color="gray.800" bg="white">
+        <PopoverArrow />
+        <PopoverHeader fontWeight="bold" fontSize="sm">Failed Jobs</PopoverHeader>
+        <PopoverBody>
+          {buildStatus.failedJobInfo!.map((job) => (
+            <Box key={job.jobName} mb="6px">
+              <Text fontWeight="bold" fontSize="sm">{job.jobName}</Text>
+              <List spacing={1} pl="8px">
+                {job.failedSteps.map((step) => (
+                  <ListItem key={step} fontSize="xs">{step}</ListItem>
+                ))}
+              </List>
+            </Box>
+          ))}
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
   );
 };
 

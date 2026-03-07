@@ -23,6 +23,17 @@ The card color immediately communicates the pipeline's health:
 | 🔴 Red | `failed`, `failure`, `timed_out`, `startup_failure` |
 
 
+## Failure Detail on Hover (GitHub Actions only)
+
+When a GitHub Actions card is red (`failure`), hovering over it reveals a **popover** showing exactly what went wrong. The popover is organized hierarchically:
+
+- Each **failed job** is listed as a bold heading.
+- Below each job, the **failed or timed-out steps** are listed by name.
+
+This lets you identify the root cause without leaving the dashboard or opening GitHub. The popover appears on hover and does not affect the card's layout or size.
+
+> This feature is only available for GitHub Actions pipelines. CircleCI cards do not show a failure detail popover.
+
 ## Card Sort Order
 
 Cards are not displayed in arbitrary order. They are sorted by urgency — actively running builds appear first, followed by holds and queues, then failures, and finally successes at the bottom. This means the most actionable pipelines are always at the top of the board.

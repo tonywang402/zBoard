@@ -102,3 +102,26 @@ describe('BuildStatusCard — edge cases', () => {
     expect(screen.getByText('Invalid date')).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Failure detail popover (GitHub Actions)
+// ---------------------------------------------------------------------------
+describe('BuildStatusCard — failure detail popover', () => {
+  it('renders job name and step name in popover content when failedJobInfo is provided with failure status', async () => {
+    renderCard({
+      status: 'failure',
+      failedJobInfo: [
+        { jobName: 'build', failedSteps: ['Run unit tests', 'Upload artifacts'] },
+      ],
+    });
+
+    expect(screen.getByText('build')).toBeInTheDocument();
+    expect(screen.getByText('Run unit tests')).toBeInTheDocument();
+    expect(screen.getByText('Upload artifacts')).toBeInTheDocument();
+  });
+
+  it('does not render popover content when failedJobInfo is absent', () => {
+    renderCard({ status: 'failure' });
+    expect(screen.queryByText('build')).not.toBeInTheDocument();
+  });
+});

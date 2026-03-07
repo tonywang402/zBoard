@@ -10,7 +10,7 @@ Each feature has its own detailed Documentation and Guidance file.
 
 | Feature | Summary | Reference |
 |---|---|---|
-| **CI/CD Build Status** | Real-time color-coded pipeline cards for CircleCI and GitHub Actions. Cards are sorted by urgency. | [BuildStatusMonitoring.instructions.md](instructions/BuildStatusMonitoring.instructions.md) |
+| **CI/CD Build Status** | Real-time color-coded pipeline cards for CircleCI and GitHub Actions. Cards are sorted by urgency. Hovering over a red GitHub Actions card shows a popover with the failed job names and their failed steps. | [BuildStatusMonitoring.instructions.md](instructions/BuildStatusMonitoring.instructions.md) |
 | **Datadog Monitoring & Alerts** | Two views: a per-project/environment monitor health overview (OK/Warning/Alert counts with color indicator), and a live active alerts list grouped by severity with ACK and WeCom notification support. | [DatadogMonitoring&Alerts.instructions.md](instructions/DatadogMonitoring&Alerts.instructions.md) |
 | **Zendesk Ticket Queue** | Displays New / Open / Pending ticket counts and a scrollable list with status badges, clickable subjects, and relative timestamps — all pulled from a configured Zendesk View. | [ZendeskTicketQueue.instructions.md](instructions/ZendeskTicketQueue.instructions.md) |
 | **Project Timeline** | Gantt-style horizontal timeline of Kanbanize board cards. Start/end dates are derived from column transition history. Cards are color-coded and owner-avatared, packed compactly into rows. | [ProjectTimeline.instructions.md](instructions/ProjectTimeline.instructions.md) |

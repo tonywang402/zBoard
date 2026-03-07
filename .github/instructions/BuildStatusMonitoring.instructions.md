@@ -27,14 +27,6 @@ The card color immediately communicates the pipeline's health:
 
 Cards are not displayed in arbitrary order. They are sorted by urgency — actively running builds appear first, followed by holds and queues, then failures, and finally successes at the bottom. This means the most actionable pipelines are always at the top of the board.
 
-## Failure Acknowledgement & Alarm
-
-When a pipeline enters a **red (failure) state**, the card shows a **"Need ACK" button**. This signals to the team that the failure has not yet been acknowledged.
-
-If the **alarm is enabled** (globally toggleable from the dashboard), a sound will play on repeat at a configured interval (default: every 30 minutes) to alert the team audibly. The alarm will **only play during working hours** — weekdays between 9:30–11:30 and 13:30–18:00 — so it won't disturb anyone outside of work hours.
-
-The alarm stops as soon as someone clicks **"Need ACK"**, at which point the button changes to an **"ACKED"** badge, confirming the failure has been seen. If the alarm is disabled, no sound plays, but the "Need ACK" button is still shown.
-
 ## Refresh
 
 The board auto-refreshes every **60 seconds** (configurable). A manual refresh button is also available.

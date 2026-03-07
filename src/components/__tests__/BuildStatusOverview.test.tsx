@@ -8,10 +8,6 @@ jest.mock('../../../config/build_status.config', () => ({
   buildStatusConfig: { title: 'Build Status', refreshIntervalSeconds: 0 },
 }));
 jest.mock('@/lib/customToast', () => ({ useErrorToast: () => jest.fn() }));
-jest.mock('../AcknowledgeBox', () => ({
-  __esModule: true,
-  default: () => <div data-testid="acknowledge-box" />,
-}));
 
 const makeStatus = (projectName: string, status: string): BuildStatus => ({
   projectName,

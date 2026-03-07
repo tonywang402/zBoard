@@ -11,13 +11,10 @@ import {
   HStack,
   Text,
   VStack,
-  CardFooter,
   CardHeader,
   CardBody,
 } from '@chakra-ui/react';
 import { TimeIcon } from '@chakra-ui/icons';
-import AcknowledgeBox from './AcknowledgeBox';
-
 interface BuildStatusCardProps {
   buildStatus: BuildStatus;
 }
@@ -43,7 +40,7 @@ interface StatusColorScheme {
   unauthorized: string;
 }
 
-const statusColorScheme: StatusColorScheme = {
+export const statusColorScheme: StatusColorScheme = {
   success: 'green',
   failed: 'red',
   on_hold: 'purple',
@@ -108,11 +105,6 @@ const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
           </VStack>
         </Flex>
       </CardBody>
-      <CardFooter justify="space-around">
-        {colorScheme === 'red' && (
-          <AcknowledgeBox intervalMin={30} alarmSrc={['/audio/river_flows_in_you.mp3']} />
-        )}
-      </CardFooter>
     </Card>
   );
 };

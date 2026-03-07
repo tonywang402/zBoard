@@ -4,7 +4,14 @@ This feature gives your team a real-time at-a-glance view of all monitored CI/CD
 
 ## What You See
 
-Each monitored pipeline is displayed as a **color-coded card**. The card color immediately communicates the pipeline's health:
+Each monitored pipeline is displayed as a **color-coded card**. Each card shows:
+- **Pipeline name** (project name)
+- **Status badge** (e.g. `failed`, `running`)
+- **Timestamp** of the last run
+- **Committer avatar, username, and branch name**
+- **Commit message** of the triggering commit
+
+The card color immediately communicates the pipeline's health:
 
 | Color | Statuses |
 |---|---|
@@ -15,12 +22,6 @@ Each monitored pipeline is displayed as a **color-coded card**. The card color i
 | ⚫ Gray | `canceled`, `cancelled`, `skipped`, `queued`, `requested`, `pending`, `stale` |
 | 🔴 Red | `failed`, `failure`, `timed_out`, `startup_failure` |
 
-Each card shows:
-- **Pipeline name** (project name)
-- **Status badge** (e.g. `failed`, `running`)
-- **Timestamp** of the last run
-- **Committer avatar, username, and branch name**
-- **Commit message** of the triggering commit
 
 ## Card Sort Order
 

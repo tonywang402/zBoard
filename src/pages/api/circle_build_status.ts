@@ -64,10 +64,12 @@ const getBuildStatus = async ({
   projectName,
   projectSlug,
   branch,
+  level,
 }: {
   projectName: string;
   projectSlug: string;
   branch: string;
+  level?: 'high' | 'medium' | 'low';
 }) => {
   const latestPipeline: Pipeline = await getLatestPipeline(projectSlug, branch);
   const { login, avatar_url } = latestPipeline.trigger.actor;
@@ -76,6 +78,7 @@ const getBuildStatus = async ({
     platform: 'CircleCI',
     projectName: projectName,
     branch,
+    level,
     username: login,
     avatarUrl: avatar_url,
     commitSubject: latestPipeline.vcs.commit?.subject || 'automatically triggered',

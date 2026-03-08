@@ -8,6 +8,7 @@ const repos = Array.from({ length: 9 }).map(() => {
 });
 
 export const getBuildStatusFakeData = () => {
+  const levels = ['high', 'medium', 'low'] as const;
   return repos.map((repo) => {
     const status = faker.helpers.arrayElement([
       'success',
@@ -21,6 +22,7 @@ export const getBuildStatusFakeData = () => {
     return {
       projectName: repo.projectName,
       branch: repo.branch,
+      level: faker.helpers.arrayElement(levels),
       status,
       stopTime: faker.date.recent(1).toISOString(),
       username: faker.name.fullName(),

@@ -36,7 +36,12 @@ This lets you identify the root cause without leaving the dashboard or opening G
 
 ## Card Sort Order
 
-Cards are not displayed in arbitrary order. They are sorted by urgency — actively running builds appear first, followed by holds and queues, then failures, and finally successes at the bottom. This means the most actionable pipelines are always at the top of the board.
+Cards are not displayed in arbitrary order. They are sorted in two stages:
+
+1. **By `level` first** — `high` cards appear first, then `medium`, then `low`.
+2. **By urgency within each level** — actively running builds appear first, followed by holds and queues, then failures, and finally successes at the bottom.
+
+If `level` is omitted, it is treated as `medium`.
 
 ## Refresh
 
@@ -44,7 +49,7 @@ The board auto-refreshes every **60 seconds** (configurable). A manual refresh b
 
 ## Configuration
 
-Pipelines to monitor are declared in `build_status.config.js`. Each entry specifies the project name, repository slug / owner+repo, branch, and workflow ID (for GitHub Actions). Either or both providers can be enabled independently.
+Pipelines to monitor are declared in `build_status.config.js`. Each entry specifies the project name, `level`, repository slug / owner+repo, branch, and workflow ID (for GitHub Actions). Either or both providers can be enabled independently.
 
 **CircleCI example:**
 ```js
@@ -54,6 +59,7 @@ circleCI: {
   projects: [
     {
       projectName: 'my-service',
+      level: 'high',
       projectSlug: 'gh/my-org/my-service',
       branch: 'main',
     },
@@ -70,6 +76,7 @@ github: {
   projects: [
     {
       projectName: 'my-service',
+      level: 'high',
       owner: 'my-org',
       repo: 'my-service',
       branch: 'main',
@@ -79,6 +86,8 @@ github: {
 }
 ```
 
+> Valid `level` values are `high`, `medium`, and `low`.
+>
 > Workflow IDs can be looked up via `https://api.github.com/repos/OWNER/REPO/actions/workflows`.
 >
 > When no token is configured, the board displays realistic fake data so the UI is fully functional out of the box.

@@ -111,12 +111,14 @@ const getStatus = async ({
   repo,
   branch,
   workflowId,
+  level,
 }: {
   projectName: string;
   owner: string;
   repo: string;
   branch: string;
   workflowId: number;
+  level?: 'high' | 'medium' | 'low';
 }) => {
   const url = `${githubActionsConfig.baseUrl}/repos/${owner}/${repo}/actions/workflows/${workflowId}/runs?per_page=1`;
   const response = await fetch(url, {
@@ -138,6 +140,7 @@ const getStatus = async ({
     platform: 'Github',
     projectName: projectName,
     branch: branch,
+    level,
     status: effectiveStatus,
     stopTime: workflowRun.updated_at,
     username: workflowRun.triggering_actor?.login,

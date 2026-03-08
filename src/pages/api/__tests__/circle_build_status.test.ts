@@ -6,7 +6,14 @@ jest.mock('../../../../config/build_status.config', () => ({
       circleCI: {
         enabled: true,
         apiToken: 'fake-circle-token',
-        projects: [{ projectName: 'payment-service', projectSlug: 'gh/acme/payment-service', branch: 'main' }],
+        projects: [
+          {
+            projectName: 'payment-service',
+            projectSlug: 'gh/acme/payment-service',
+            branch: 'main',
+            level: 'high',
+          },
+        ],
       },
       github: { enabled: false, projects: [] },
     },
@@ -70,6 +77,7 @@ describe('getAllCircleBuildStatus', () => {
     expect(result.commitSubject).toBe('fix: payment timeout');
     expect(result.platform).toBe('CircleCI');
     expect(result.branch).toBe('main');
+    expect(result.level).toBe('high');
   });
 
   it('selects most recent workflow ordered by created_at desc', async () => {

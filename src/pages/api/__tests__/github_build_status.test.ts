@@ -7,7 +7,16 @@ jest.mock('../../../../config/build_status.config', () => ({
         enabled: true,
         apiToken: 'ghp_fake_token',
         baseUrl: 'https://api.github.com',
-        projects: [{ projectName: 'vscode', owner: 'microsoft', repo: 'vscode', branch: 'master', workflowId: 123 }],
+        projects: [
+          {
+            projectName: 'vscode',
+            owner: 'microsoft',
+            repo: 'vscode',
+            branch: 'master',
+            workflowId: 123,
+            level: 'high',
+          },
+        ],
       },
       circleCI: { enabled: false, projects: [] },
     },
@@ -53,6 +62,7 @@ describe('getAllGitHubStatus', () => {
     expect(result.avatarUrl).toBe('https://avatars.gh/jsmith');
     expect(result.commitSubject).toBe('chore: bump deps');
     expect(result.platform).toBe('Github');
+    expect(result.level).toBe('high');
   });
 
   it('keeps raw status when workflow run is not "completed"', async () => {

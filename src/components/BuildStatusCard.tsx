@@ -32,6 +32,7 @@ export interface BuildStatus {
   projectName: string;
   branch: string;
   status: string;
+  level?: 'high' | 'medium' | 'low';
   stopTime: string;
   username: string;
   avatarUrl: string;

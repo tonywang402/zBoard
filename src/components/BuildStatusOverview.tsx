@@ -28,13 +28,31 @@ const BuildStatusOverview = (props: SystemProps) => {
     success: 19,
     completed: 20,
   };
+  const levelPriority: { [key: string]: number } = {
+    high: 1,
+    medium: 2,
+    low: 3,
+  };
+
+  const getLevelPriority = (level?: BuildStatus['level']) => {
+    if (!level) return levelPriority.medium;
+    return levelPriority[level] ?? levelPriority.medium;
+  };
+
+  const getStatusPriority = (status: string) => {
+    return statusPriority[status] ?? Number.MAX_SAFE_INTEGER;
+  };
 
   const fetchData = async () => {
     const res = await fetch('/api/build_status');
     if (res.ok) {
       const data = await res.json();
       data.sort((a: BuildStatus, b: BuildStatus) => {
-        return statusPriority[a.status] - statusPriority[b.status];
+        const levelCompare = getLevelPriority(a.level) - getLevelPriority(b.level);
+        if (levelCompare !== 0) {
+          return levelCompare;
+        }
+        return getStatusPriority(a.status) - getStatusPriority(b.status);
       });
       return data;
     } else {

@@ -120,8 +120,37 @@ describe('BuildStatusCard — failure detail popover', () => {
     expect(screen.getByText('Upload artifacts')).toBeInTheDocument();
   });
 
-  it('does not render popover content when failedJobInfo is absent', () => {
+  it('renders popover title when status is startup_failure and failedJobInfo is empty', () => {
+    renderCard({ status: 'startup_failure', failedJobInfo: [] });
+
+    expect(screen.getByText('Failed Jobs')).toBeInTheDocument();
+  });
+
+  it('renders failed job title with an empty step list for startup_failure', () => {
+    renderCard({
+      status: 'startup_failure',
+      failedJobInfo: [{ jobName: 'load_test', failedSteps: [] }],
+    });
+
+    expect(screen.getByText('Failed Jobs')).toBeInTheDocument();
+    expect(screen.getByText('load_test')).toBeInTheDocument();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+  });
+
+  it('renders popover title when failure status has no failedJobInfo', () => {
     renderCard({ status: 'failure' });
+
+    expect(screen.getByText('Failed Jobs')).toBeInTheDocument();
+    expect(screen.queryByText('build')).not.toBeInTheDocument();
+  });
+
+  it('does not render popover content for non-red status even when failedJobInfo exists', () => {
+    renderCard({
+      status: 'success',
+      failedJobInfo: [{ jobName: 'build', failedSteps: ['Run unit tests'] }],
+    });
+
+    expect(screen.queryByText('Failed Jobs')).not.toBeInTheDocument();
     expect(screen.queryByText('build')).not.toBeInTheDocument();
   });
 });

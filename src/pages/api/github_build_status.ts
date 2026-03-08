@@ -75,6 +75,9 @@ export interface FailedJobInfo {
 }
 
 const githubActionsConfig = buildStatusConfig.datasource.github;
+const WORKFLOW_FAILURE_CONCLUSIONS = new Set(['failure', 'startup_failure']);
+const JOB_FAILURE_CONCLUSIONS = new Set(['failure', 'startup_failure']);
+const STEP_FAILURE_CONCLUSIONS = new Set(['failure', 'timed_out', 'startup_failure']);
 
 const getFailedJobInfo = async (jobsUrl: string): Promise<FailedJobInfo[]> => {
   const response = await fetch(jobsUrl, {
@@ -83,11 +86,11 @@ const getFailedJobInfo = async (jobsUrl: string): Promise<FailedJobInfo[]> => {
   if (!response.ok) return [];
   const json: JobsResponse = await response.json();
   return json.jobs
-    .filter((job) => job.conclusion === 'failure')
+    .filter((job) => JOB_FAILURE_CONCLUSIONS.has(job.conclusion ?? ''))
     .map((job) => ({
       jobName: job.name.includes('/') ? job.name.split('/').pop()!.trim() : job.name,
       failedSteps: (job.steps ?? [])
-        .filter((step) => step.conclusion === 'failure' || step.conclusion === 'timed_out')
+        .filter((step) => STEP_FAILURE_CONCLUSIONS.has(step.conclusion ?? ''))
         .map((step) => step.name),
     }));
 };
@@ -133,7 +136,7 @@ const getStatus = async ({
   const workflowRun = json.workflow_runs[0];
   const effectiveStatus = workflowRun.status === 'completed' ? workflowRun.conclusion : workflowRun.status;
   const failedJobInfo =
-    effectiveStatus === 'failure'
+    WORKFLOW_FAILURE_CONCLUSIONS.has(effectiveStatus ?? '')
       ? await getFailedJobInfo(workflowRun.jobs_url)
       : undefined;
   return {

@@ -76,7 +76,7 @@ export const statusColorScheme: StatusColorScheme = {
 const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
   const colorScheme = statusColorScheme[buildStatus.status] || 'red';
   const startTime = moment(buildStatus.stopTime).format('YYYY-MM-DD HH:mm:ss');
-  const showPopover = colorScheme === 'red' && !!buildStatus.failedJobInfo?.length;
+  const showPopover = colorScheme === 'red';
 
   const card = (
     <Card
@@ -129,7 +129,7 @@ const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
         <PopoverArrow />
         <PopoverHeader fontWeight="bold" fontSize="sm">Failed Jobs</PopoverHeader>
         <PopoverBody>
-          {buildStatus.failedJobInfo!.map((job) => (
+          {(buildStatus.failedJobInfo ?? []).map((job) => (
             <Box key={job.jobName} mb="6px">
               <Text fontWeight="bold" fontSize="sm">{job.jobName}</Text>
               <List spacing={1} pl="8px">

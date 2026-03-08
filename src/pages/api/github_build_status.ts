@@ -134,6 +134,9 @@ const getStatus = async ({
     throw new Error(JSON.stringify(json));
   }
   const workflowRun = json.workflow_runs[0];
+  if (!workflowRun) {
+    throw new Error(`No workflow runs found for ${owner}/${repo} workflow ${workflowId}`);
+  }
   const effectiveStatus = workflowRun.status === 'completed' ? workflowRun.conclusion : workflowRun.status;
   const failedJobInfo =
     WORKFLOW_FAILURE_CONCLUSIONS.has(effectiveStatus ?? '')
@@ -149,6 +152,9 @@ const getStatus = async ({
     username: workflowRun.triggering_actor?.login,
     avatarUrl: workflowRun.triggering_actor?.avatar_url,
     commitSubject: workflowRun.head_commit?.message,
+    owner,
+    repo,
+    runId: workflowRun.id,
     failedJobInfo,
   };
 };

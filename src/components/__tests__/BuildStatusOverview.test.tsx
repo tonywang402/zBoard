@@ -7,7 +7,10 @@ import type { BuildStatus } from '../BuildStatusCard';
 jest.mock('../../../config/build_status.config', () => ({
   buildStatusConfig: { title: 'Build Status', refreshIntervalSeconds: 0 },
 }));
-jest.mock('@/lib/customToast', () => ({ useErrorToast: () => jest.fn() }));
+jest.mock('@/lib/customToast', () => ({
+  useErrorToast: () => jest.fn(),
+  useInfoToast: () => jest.fn(),
+}));
 
 const makeStatus = (
   projectName: string,

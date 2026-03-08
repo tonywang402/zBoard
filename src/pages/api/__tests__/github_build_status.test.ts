@@ -48,6 +48,7 @@ describe('getAllGitHubStatus', () => {
   it('maps status to conclusion when workflow run is "completed"', async () => {
     mockFetch.mockReturnValueOnce(okJson({
       workflow_runs: [{
+        id: 1001,
         status: 'completed',
         conclusion: 'success',
         updated_at: '2026-02-27T12:00:00Z',
@@ -63,11 +64,15 @@ describe('getAllGitHubStatus', () => {
     expect(result.commitSubject).toBe('chore: bump deps');
     expect(result.platform).toBe('Github');
     expect(result.level).toBe('high');
+    expect(result.owner).toBe('microsoft');
+    expect(result.repo).toBe('vscode');
+    expect(result.runId).toBe(1001);
   });
 
   it('keeps raw status when workflow run is not "completed"', async () => {
     mockFetch.mockReturnValueOnce(okJson({
       workflow_runs: [{
+        id: 1002,
         status: 'in_progress',
         conclusion: null,
         updated_at: '2026-02-27T12:00:00Z',
@@ -83,6 +88,13 @@ describe('getAllGitHubStatus', () => {
     expect(result.commitSubject).toBeUndefined();
   });
 
+  it('throws clear error when no workflow run is returned', async () => {
+    mockFetch.mockReturnValueOnce(okJson({ workflow_runs: [] }));
+    await expect(getAllGitHubStatus()).rejects.toThrow(
+      'No workflow runs found for microsoft/vscode workflow 123'
+    );
+  });
+
   it('throws formatted error when GitHub API returns non-ok', async () => {
     mockFetch.mockReturnValueOnce(errJson({ message: 'Bad credentials' }, 401));
     await expect(getAllGitHubStatus()).rejects.toThrow('{"message":"Bad credentials"}');
@@ -92,6 +104,7 @@ describe('getAllGitHubStatus', () => {
     mockFetch
       .mockReturnValueOnce(okJson({
         workflow_runs: [{
+          id: 1003,
           status: 'completed',
           conclusion: 'failure',
           updated_at: '2026-02-27T12:00:00Z',
@@ -167,6 +180,7 @@ describe('getAllGitHubStatus', () => {
   it('does not fetch jobs_url and leaves failedJobInfo undefined when conclusion is "success"', async () => {
     mockFetch.mockReturnValueOnce(okJson({
       workflow_runs: [{
+        id: 1004,
         status: 'completed',
         conclusion: 'success',
         updated_at: '2026-02-27T12:00:00Z',
@@ -186,6 +200,7 @@ describe('getAllGitHubStatus', () => {
     mockFetch
       .mockReturnValueOnce(okJson({
         workflow_runs: [{
+          id: 1005,
           status: 'completed',
           conclusion: 'failure',
           updated_at: '2026-02-27T12:00:00Z',
@@ -292,6 +307,7 @@ describe('getAllGitHubStatus', () => {
     mockFetch
       .mockReturnValueOnce(okJson({
         workflow_runs: [{
+          id: 1006,
           status: 'completed',
           conclusion: 'failure',
           updated_at: '2026-02-27T12:00:00Z',

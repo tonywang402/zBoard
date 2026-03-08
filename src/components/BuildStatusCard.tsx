@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import moment from 'moment';
 import {
   Avatar,
@@ -21,22 +21,30 @@ import {
   VStack,
   CardHeader,
   CardBody,
+  IconButton,
 } from '@chakra-ui/react';
-import { TimeIcon } from '@chakra-ui/icons';
+import { RepeatIcon, TimeIcon } from '@chakra-ui/icons';
+import { useErrorToast, useInfoToast } from '@/lib/customToast';
+
 interface BuildStatusCardProps {
   buildStatus: BuildStatus;
+  onRerunSuccess?: () => Promise<void> | void;
 }
 
 export interface BuildStatus {
   // TODO render style & color by platform: CircleCI or Github
+  platform?: string;
   projectName: string;
   branch: string;
   status: string;
   level?: 'high' | 'medium' | 'low';
   stopTime: string;
-  username: string;
-  avatarUrl: string;
-  commitSubject: string;
+  username?: string;
+  avatarUrl?: string;
+  commitSubject?: string;
+  owner?: string;
+  repo?: string;
+  runId?: number;
   failedJobInfo?: { jobName: string; failedSteps: string[] }[];
 }
 
@@ -73,10 +81,78 @@ export const statusColorScheme: StatusColorScheme = {
   startup_failure: 'red',
 };
 
-const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
+const getErrorMessageFromResponse = async (response: Response) => {
+  const raw = await response.text();
+  if (!raw) {
+    return 'Failed to rerun jobs';
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === 'string') {
+      return parsed;
+    }
+    if (parsed?.message) {
+      return parsed.message;
+    }
+  } catch {
+    // Keep the original message when response is plain text.
+  }
+
+  return raw;
+};
+
+const BuildStatusCard = ({ buildStatus, onRerunSuccess }: BuildStatusCardProps) => {
+  const [isRerunning, setIsRerunning] = useState(false);
+  const toastError = useErrorToast();
+  const toastInfo = useInfoToast();
+
   const colorScheme = statusColorScheme[buildStatus.status] || 'red';
   const startTime = moment(buildStatus.stopTime).format('YYYY-MM-DD HH:mm:ss');
   const showPopover = colorScheme === 'red';
+  const canRerunFailedJobs =
+    showPopover &&
+    buildStatus.platform === 'Github' &&
+    !!buildStatus.owner &&
+    !!buildStatus.repo &&
+    buildStatus.runId !== undefined;
+
+  const handleRerunFailedJobs = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!canRerunFailedJobs || isRerunning) {
+      return;
+    }
+
+    setIsRerunning(true);
+    try {
+      const response = await fetch('/api/github_rerun_failed_jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          owner: buildStatus.owner,
+          repo: buildStatus.repo,
+          runId: buildStatus.runId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessageFromResponse(response));
+      }
+
+      toastInfo('Rerun triggered', `Failed jobs rerun requested for ${buildStatus.projectName}`);
+      if (onRerunSuccess) {
+        await onRerunSuccess();
+      }
+    } catch (error) {
+      toastError((error as Error).message || 'Failed to rerun jobs');
+    } finally {
+      setIsRerunning(false);
+    }
+  };
 
   const card = (
     <Card
@@ -127,7 +203,25 @@ const BuildStatusCard = ({ buildStatus }: BuildStatusCardProps) => {
       <PopoverTrigger>{card}</PopoverTrigger>
       <PopoverContent color="gray.800" bg="white">
         <PopoverArrow />
-        <PopoverHeader fontWeight="bold" fontSize="sm">Failed Jobs</PopoverHeader>
+        <PopoverHeader>
+          <Flex align="center" justify="space-between" gap="8px">
+            <Text fontWeight="bold" fontSize="sm">
+              Failed Jobs
+            </Text>
+            {canRerunFailedJobs && (
+              <IconButton
+                aria-label="Rerun failed jobs"
+                icon={<RepeatIcon />}
+                size="xs"
+                variant="ghost"
+                colorScheme="blue"
+                isLoading={isRerunning}
+                isDisabled={isRerunning}
+                onClick={handleRerunFailedJobs}
+              />
+            )}
+          </Flex>
+        </PopoverHeader>
         <PopoverBody>
           {(buildStatus.failedJobInfo ?? []).map((job) => (
             <Box key={job.jobName} mb="6px">

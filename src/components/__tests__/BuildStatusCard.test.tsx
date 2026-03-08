@@ -1,7 +1,17 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ChakraProvider } from '@chakra-ui/react';
 import BuildStatusCard, { BuildStatus, statusColorScheme } from '../BuildStatusCard';
+
+const mockToastError = jest.fn();
+const mockToastInfo = jest.fn();
+
+jest.mock('@/lib/customToast', () => ({
+  useErrorToast: () => mockToastError,
+  useInfoToast: () => mockToastInfo,
+}));
 
 const base: BuildStatus = {
   projectName: 'my-service',
@@ -13,10 +23,16 @@ const base: BuildStatus = {
   commitSubject: 'fix: some bug',
 };
 
-const renderCard = (overrides: Partial<BuildStatus> = {}) =>
+const renderCard = (
+  overrides: Partial<BuildStatus> = {},
+  options: { onRerunSuccess?: () => Promise<void> | void } = {}
+) =>
   render(
     <ChakraProvider>
-      <BuildStatusCard buildStatus={{ ...base, ...overrides }} />
+      <BuildStatusCard
+        buildStatus={{ ...base, ...overrides }}
+        onRerunSuccess={options.onRerunSuccess}
+      />
     </ChakraProvider>
   );
 
@@ -24,6 +40,11 @@ const renderCard = (overrides: Partial<BuildStatus> = {}) =>
 // Color scheme derivation
 // ---------------------------------------------------------------------------
 describe('BuildStatusCard — color scheme derivation', () => {
+  afterEach(() => {
+    mockToastError.mockReset();
+    mockToastInfo.mockReset();
+  });
+
   it.each([
     ['failed',          'red'],
     ['failure',         'red'],
@@ -60,6 +81,11 @@ describe('BuildStatusCard — color scheme derivation', () => {
 // Field rendering
 // ---------------------------------------------------------------------------
 describe('BuildStatusCard — field rendering', () => {
+  afterEach(() => {
+    mockToastError.mockReset();
+    mockToastInfo.mockReset();
+  });
+
   it('renders projectName, status, branch, username, and commitSubject', () => {
     renderCard({
       projectName: 'payments-service',
@@ -91,6 +117,11 @@ describe('BuildStatusCard — field rendering', () => {
 // Edge cases
 // ---------------------------------------------------------------------------
 describe('BuildStatusCard — edge cases', () => {
+  afterEach(() => {
+    mockToastError.mockReset();
+    mockToastInfo.mockReset();
+  });
+
   it('renders without crashing when string fields are empty', () => {
     expect(() =>
       renderCard({ username: '', avatarUrl: '', commitSubject: '', branch: '' })
@@ -107,6 +138,11 @@ describe('BuildStatusCard — edge cases', () => {
 // Failure detail popover (GitHub Actions)
 // ---------------------------------------------------------------------------
 describe('BuildStatusCard — failure detail popover', () => {
+  afterEach(() => {
+    mockToastError.mockReset();
+    mockToastInfo.mockReset();
+  });
+
   it('renders job name and step name in popover content when failedJobInfo is provided with failure status', async () => {
     renderCard({
       status: 'failure',
@@ -152,5 +188,141 @@ describe('BuildStatusCard — failure detail popover', () => {
 
     expect(screen.queryByText('Failed Jobs')).not.toBeInTheDocument();
     expect(screen.queryByText('build')).not.toBeInTheDocument();
+  });
+});
+
+describe('BuildStatusCard — rerun failed jobs action', () => {
+  const mockFetch = global.fetch as jest.Mock;
+
+  afterEach(() => {
+    mockFetch.mockReset();
+    mockToastError.mockReset();
+    mockToastInfo.mockReset();
+  });
+
+  it('shows rerun icon for GitHub failure cards with rerun metadata', () => {
+    renderCard({
+      platform: 'Github',
+      status: 'failure',
+      owner: 'microsoft',
+      repo: 'vscode',
+      runId: 123,
+      failedJobInfo: [{ jobName: 'build', failedSteps: ['Run unit tests'] }],
+    });
+
+    expect(screen.getByLabelText('Rerun failed jobs')).toBeInTheDocument();
+  });
+
+  it('hides rerun icon when rerun metadata is incomplete', () => {
+    renderCard({
+      platform: 'Github',
+      status: 'failure',
+      owner: 'microsoft',
+      repo: 'vscode',
+      failedJobInfo: [{ jobName: 'build', failedSteps: ['Run unit tests'] }],
+    });
+
+    expect(screen.queryByLabelText('Rerun failed jobs')).not.toBeInTheDocument();
+  });
+
+  it('posts rerun payload and triggers immediate refresh callback on success', async () => {
+    const user = userEvent.setup();
+    const onRerunSuccess = jest.fn().mockResolvedValue(undefined);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      text: async () => '',
+      json: async () => ({}),
+    });
+
+    renderCard(
+      {
+        platform: 'Github',
+        status: 'failure',
+        owner: 'microsoft',
+        repo: 'vscode',
+        runId: 123,
+        failedJobInfo: [{ jobName: 'build', failedSteps: ['Run unit tests'] }],
+      },
+      { onRerunSuccess }
+    );
+
+    await user.click(screen.getByLabelText('Rerun failed jobs'));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/github_rerun_failed_jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ owner: 'microsoft', repo: 'vscode', runId: 123 }),
+      });
+    });
+    expect(mockToastInfo).toHaveBeenCalledWith(
+      'Rerun triggered',
+      'Failed jobs rerun requested for my-service'
+    );
+    expect(onRerunSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables rerun icon while request is in flight', async () => {
+    const user = userEvent.setup();
+    let resolveFetch: (value: unknown) => void;
+    const pendingRequest = new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
+    mockFetch.mockReturnValueOnce(pendingRequest);
+
+    renderCard({
+      platform: 'Github',
+      status: 'failure',
+      owner: 'microsoft',
+      repo: 'vscode',
+      runId: 123,
+      failedJobInfo: [{ jobName: 'build', failedSteps: ['Run unit tests'] }],
+    });
+
+    const rerunButton = screen.getByLabelText('Rerun failed jobs');
+    await user.click(rerunButton);
+
+    await waitFor(() => {
+      expect(rerunButton).toBeDisabled();
+    });
+
+    resolveFetch!({
+      ok: true,
+      text: async () => '',
+      json: async () => ({}),
+    });
+
+    await waitFor(() => {
+      expect(rerunButton).not.toBeDisabled();
+    });
+  });
+
+  it('shows error toast and skips refresh callback on failed rerun request', async () => {
+    const user = userEvent.setup();
+    const onRerunSuccess = jest.fn();
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      text: async () => JSON.stringify({ message: 'Forbidden' }),
+      json: async () => ({ message: 'Forbidden' }),
+    });
+
+    renderCard(
+      {
+        platform: 'Github',
+        status: 'failure',
+        owner: 'microsoft',
+        repo: 'vscode',
+        runId: 123,
+        failedJobInfo: [{ jobName: 'build', failedSteps: ['Run unit tests'] }],
+      },
+      { onRerunSuccess }
+    );
+
+    await user.click(screen.getByLabelText('Rerun failed jobs'));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('Forbidden');
+    });
+    expect(onRerunSuccess).not.toHaveBeenCalled();
   });
 });

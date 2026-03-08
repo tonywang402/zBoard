@@ -14,11 +14,16 @@ import moment from 'moment';
 import { isEmpty } from 'lodash';
 import DefaultImage from './DefaultImage';
 
+export interface RefreshRenderControls {
+  triggerRefresh: () => Promise<void>;
+  isRefreshing: boolean;
+}
+
 interface RefreshWrapperProps<T> {
   title: string;
   onRefresh: () => Promise<T[]>;
   refreshIntervalSeconds?: number;
-  render: (data: T[]) => JSX.Element;
+  render: (data: T[], controls?: RefreshRenderControls) => JSX.Element;
   showRefreshButton?: boolean;
   remainOldDataOnError?: boolean;
   showRefreshButtonPosition?: 'buttom' | 'right';
@@ -97,7 +102,7 @@ const RefreshWrapper = <T,>({
             />
           </Box>
         </Center>
-        {data.length > 0 ? render(data) : <DefaultImage />}
+        {data.length > 0 ? render(data, { triggerRefresh, isRefreshing }) : <DefaultImage />}
       </VStack>
     </>
   );

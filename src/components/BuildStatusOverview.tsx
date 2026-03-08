@@ -1,6 +1,6 @@
 import { SystemProps, Grid } from '@chakra-ui/react';
 import BuildStatusCard, { BuildStatus } from '@/components/BuildStatusCard';
-import RefreshWrapper from '@/components/RefreshWrapper';
+import RefreshWrapper, { RefreshRenderControls } from '@/components/RefreshWrapper';
 import { buildStatusConfig } from '../../config/build_status.config';
 import { useErrorToast } from '@/lib/customToast';
 
@@ -67,25 +67,29 @@ const BuildStatusOverview = (props: SystemProps) => {
       title={buildStatusConfig.title || 'Build Status'}
       onRefresh={fetchData}
       refreshIntervalSeconds={buildStatusConfig.refreshIntervalSeconds || 0}
-      render={(data: BuildStatus[]) => (
-        <>
-          <Grid
-            overflowY="scroll"
-            height="100%"
-            width="100%"
-            rowGap="18px"
-            columnGap="24px"
-            gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
-          >
-            {data.map((item) => (
-              <BuildStatusCard
-                key={`${item.commitSubject} ${item.status} ${item.stopTime}`}
-                buildStatus={item}
-              />
-            ))}
-          </Grid>
-        </>
-      )}
+      render={(data: BuildStatus[], controls?: RefreshRenderControls) => {
+        const triggerRefresh = controls?.triggerRefresh;
+        return (
+          <>
+            <Grid
+              overflowY="scroll"
+              height="100%"
+              width="100%"
+              rowGap="18px"
+              columnGap="24px"
+              gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
+            >
+              {data.map((item) => (
+                <BuildStatusCard
+                  key={`${item.commitSubject} ${item.status} ${item.stopTime}`}
+                  buildStatus={item}
+                  onRerunSuccess={triggerRefresh}
+                />
+              ))}
+            </Grid>
+          </>
+        );
+      }}
     />
   );
 };

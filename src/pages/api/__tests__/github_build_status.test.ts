@@ -95,9 +95,55 @@ describe('getAllGitHubStatus', () => {
     );
   });
 
-  it('throws formatted error when GitHub API returns non-ok', async () => {
-    mockFetch.mockReturnValueOnce(errJson({ message: 'Bad credentials' }, 401));
+  it('retries workflow runs fetch when response is non-ok and succeeds on third attempt', async () => {
+    mockFetch
+      .mockReturnValueOnce(errJson({ message: 'Temporary error' }, 503))
+      .mockReturnValueOnce(errJson({ message: 'Temporary error' }, 503))
+      .mockReturnValueOnce(okJson({
+        workflow_runs: [{
+          id: 1007,
+          status: 'completed',
+          conclusion: 'success',
+          updated_at: '2026-02-27T12:00:00Z',
+          triggering_actor: { login: 'retry-user', avatar_url: 'https://avatars.gh/retry-user' },
+          head_commit: { message: 'fix: retry unstable call' },
+        }],
+      }));
+
+    const [result] = await getAllGitHubStatus();
+    expect(result.status).toBe('success');
+    expect(result.runId).toBe(1007);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries up to 3 attempts and throws formatted error when all attempts are non-ok', async () => {
+    mockFetch
+      .mockReturnValueOnce(errJson({ message: 'Bad credentials' }, 401))
+      .mockReturnValueOnce(errJson({ message: 'Bad credentials' }, 401))
+      .mockReturnValueOnce(errJson({ message: 'Bad credentials' }, 401));
+
     await expect(getAllGitHubStatus()).rejects.toThrow('{"message":"Bad credentials"}');
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries workflow runs fetch when fetch throws and succeeds on second attempt', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new Error('network timeout'))
+      .mockReturnValueOnce(okJson({
+        workflow_runs: [{
+          id: 1008,
+          status: 'in_progress',
+          conclusion: null,
+          updated_at: '2026-02-27T12:00:00Z',
+          triggering_actor: null,
+          head_commit: null,
+        }],
+      }));
+
+    const [result] = await getAllGitHubStatus();
+    expect(result.status).toBe('in_progress');
+    expect(result.runId).toBe(1008);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
   it('fetches jobs_url and returns failedJobInfo when conclusion is "failure"', async () => {

@@ -78,6 +78,7 @@ const githubActionsConfig = buildStatusConfig.datasource.github;
 const WORKFLOW_FAILURE_CONCLUSIONS = new Set(['failure', 'startup_failure']);
 const JOB_FAILURE_CONCLUSIONS = new Set(['failure', 'startup_failure']);
 const STEP_FAILURE_CONCLUSIONS = new Set(['failure', 'timed_out', 'startup_failure']);
+const MAX_WORKFLOW_RUN_FETCH_ATTEMPTS = 3;
 
 const getFailedJobInfo = async (jobsUrl: string): Promise<FailedJobInfo[]> => {
   const response = await fetch(jobsUrl, {
@@ -93,6 +94,29 @@ const getFailedJobInfo = async (jobsUrl: string): Promise<FailedJobInfo[]> => {
         .filter((step) => STEP_FAILURE_CONCLUSIONS.has(step.conclusion ?? ''))
         .map((step) => step.name),
     }));
+};
+
+const fetchWorkflowRunResponseWithRetry = async (url: string): Promise<workflowRunResponse> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= MAX_WORKFLOW_RUN_FETCH_ATTEMPTS; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${githubActionsConfig.apiToken}`,
+        },
+      });
+      const json: workflowRunResponse = await response.json();
+      if (response.ok) {
+        return json;
+      }
+      lastError = new Error(JSON.stringify(json));
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+
+  throw lastError ?? new Error('Failed to fetch GitHub workflow runs');
 };
 
 const handler: NextApiHandler = async (req, res) => {
@@ -121,18 +145,10 @@ const getStatus = async ({
   repo: string;
   branch: string;
   workflowId: number;
-  level?: 'high' | 'medium' | 'low';
+  level?: string;
 }) => {
   const url = `${githubActionsConfig.baseUrl}/repos/${owner}/${repo}/actions/workflows/${workflowId}/runs?per_page=1`;
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${githubActionsConfig.apiToken}`,
-    },
-  });
-  let json: workflowRunResponse = await response.json();
-  if (!response.ok) {
-    throw new Error(JSON.stringify(json));
-  }
+  const json = await fetchWorkflowRunResponseWithRetry(url);
   const workflowRun = json.workflow_runs[0];
   if (!workflowRun) {
     throw new Error(`No workflow runs found for ${owner}/${repo} workflow ${workflowId}`);

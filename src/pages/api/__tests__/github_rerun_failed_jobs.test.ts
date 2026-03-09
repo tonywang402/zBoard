@@ -85,7 +85,7 @@ describe('github_rerun_failed_jobs route', () => {
 
     const req = {
       method: 'POST',
-      body: { owner: 'microsoft', repo: 'vscode', runId: '123' },
+      body: { owner: 'microsoft', repo: 'vscode', runId: '123', rerunMode: 'failed_jobs' },
     };
     const res = createMockRes();
 
@@ -93,6 +93,35 @@ describe('github_rerun_failed_jobs route', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.github.com/repos/microsoft/vscode/actions/runs/123/rerun-failed-jobs',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ghp_fake_token',
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      }
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: 'Rerun request accepted',
+    });
+  });
+
+  it('returns 200 and proxies GitHub workflow rerun call for startup failures', async () => {
+    mockFetch.mockReturnValueOnce(okResponse());
+
+    const req = {
+      method: 'POST',
+      body: { owner: 'microsoft', repo: 'vscode', runId: 123, rerunMode: 'workflow' },
+    };
+    const res = createMockRes();
+
+    await handler(req as any, res as any);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.github.com/repos/microsoft/vscode/actions/runs/123/rerun',
       {
         method: 'POST',
         headers: {
@@ -122,6 +151,23 @@ describe('github_rerun_failed_jobs route', () => {
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       message: 'owner/repo is not configured for rerun',
+    });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when rerunMode is invalid', async () => {
+    const req = {
+      method: 'POST',
+      body: { owner: 'microsoft', repo: 'vscode', runId: 123, rerunMode: 'not_supported' },
+    };
+    const res = createMockRes();
+
+    await handler(req as any, res as any);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message: 'rerunMode must be either failed_jobs or workflow',
     });
     expect(mockFetch).not.toHaveBeenCalled();
   });

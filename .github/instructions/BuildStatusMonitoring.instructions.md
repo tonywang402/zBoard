@@ -36,12 +36,13 @@ This lets you identify the root cause without leaving the dashboard or opening G
 
 > For GitHub Actions pipelines, failed job/step details are available when the API returns them.
 
-### Rerun Failed Jobs (GitHub Actions)
+### Rerun (GitHub Actions)
 
 For eligible GitHub Actions red cards, a **rerun icon** appears to the right of the `Failed Jobs` title in the hover popover.
 
 From a user perspective:
-- Click the rerun icon to request **rerun failed jobs** for that workflow run.
+- Click the rerun icon on a `startup_failure` card to request **rerun the full workflow run**.
+- Click the rerun icon on other eligible red cards to request **rerun failed jobs** for that workflow run.
 - While the request is in progress, the icon is temporarily disabled and shows a loading state.
 - On success, a confirmation toast appears, and the board refreshes to show the latest status.
 - If rerun is not available for that card, the icon is simply not shown.

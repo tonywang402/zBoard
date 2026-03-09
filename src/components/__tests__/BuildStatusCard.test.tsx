@@ -252,14 +252,52 @@ describe('BuildStatusCard — rerun failed jobs action', () => {
       expect(mockFetch).toHaveBeenCalledWith('/api/github_rerun_failed_jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ owner: 'microsoft', repo: 'vscode', runId: 123 }),
+        body: JSON.stringify({
+          owner: 'microsoft',
+          repo: 'vscode',
+          runId: 123,
+          rerunMode: 'failed_jobs',
+        }),
       });
     });
     expect(mockToastInfo).toHaveBeenCalledWith(
       'Rerun triggered',
-      'Failed jobs rerun requested for my-service'
+      'Rerun request submitted for my-service'
     );
     expect(onRerunSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('posts workflow rerun payload for startup_failure status', async () => {
+    const user = userEvent.setup();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      text: async () => '',
+      json: async () => ({}),
+    });
+
+    renderCard({
+      platform: 'Github',
+      status: 'startup_failure',
+      owner: 'microsoft',
+      repo: 'vscode',
+      runId: 123,
+      failedJobInfo: [{ jobName: 'build', failedSteps: [] }],
+    });
+
+    await user.click(screen.getByLabelText('Rerun failed jobs'));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/github_rerun_failed_jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          owner: 'microsoft',
+          repo: 'vscode',
+          runId: 123,
+          rerunMode: 'workflow',
+        }),
+      });
+    });
   });
 
   it('disables rerun icon while request is in flight', async () => {

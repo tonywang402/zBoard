@@ -48,6 +48,8 @@ export interface BuildStatus {
   failedJobInfo?: { jobName: string; failedSteps: string[] }[];
 }
 
+type RerunMode = 'failed_jobs' | 'workflow';
+
 interface StatusColorScheme {
   [key: string]: string;
   success: string;
@@ -110,6 +112,8 @@ const BuildStatusCard = ({ buildStatus, onRerunSuccess }: BuildStatusCardProps) 
   const colorScheme = statusColorScheme[buildStatus.status] || 'red';
   const startTime = moment(buildStatus.stopTime).format('YYYY-MM-DD HH:mm:ss');
   const showPopover = colorScheme === 'red';
+  const rerunMode: RerunMode =
+    buildStatus.status === 'startup_failure' ? 'workflow' : 'failed_jobs';
   const canRerunFailedJobs =
     showPopover &&
     buildStatus.platform === 'Github' &&
@@ -136,6 +140,7 @@ const BuildStatusCard = ({ buildStatus, onRerunSuccess }: BuildStatusCardProps) 
           owner: buildStatus.owner,
           repo: buildStatus.repo,
           runId: buildStatus.runId,
+          rerunMode,
         }),
       });
 
@@ -143,7 +148,7 @@ const BuildStatusCard = ({ buildStatus, onRerunSuccess }: BuildStatusCardProps) 
         throw new Error(await getErrorMessageFromResponse(response));
       }
 
-      toastInfo('Rerun triggered', `Failed jobs rerun requested for ${buildStatus.projectName}`);
+      toastInfo('Rerun triggered', `Rerun request submitted for ${buildStatus.projectName}`);
       if (onRerunSuccess) {
         await onRerunSuccess();
       }

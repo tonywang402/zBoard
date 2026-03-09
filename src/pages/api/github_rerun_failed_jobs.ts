@@ -5,7 +5,10 @@ interface RerunRequestBody {
   owner?: string;
   repo?: string;
   runId?: number | string;
+  rerunMode?: RerunMode;
 }
+
+type RerunMode = 'failed_jobs' | 'workflow';
 
 const githubActionsConfig = buildStatusConfig.datasource.github;
 
@@ -24,16 +27,19 @@ export const rerunFailedJobs = async ({
   owner,
   repo,
   runId,
+  rerunMode,
 }: {
   owner: string;
   repo: string;
   runId: number;
+  rerunMode: RerunMode;
 }) => {
   if (!githubActionsConfig.enabled || !githubActionsConfig.apiToken) {
     throw new Error('GitHub build status datasource is not configured');
   }
 
-  const url = `${githubActionsConfig.baseUrl}/repos/${owner}/${repo}/actions/runs/${runId}/rerun-failed-jobs`;
+  const rerunPath = rerunMode === 'workflow' ? 'rerun' : 'rerun-failed-jobs';
+  const url = `${githubActionsConfig.baseUrl}/repos/${owner}/${repo}/actions/runs/${runId}/${rerunPath}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -69,10 +75,18 @@ const handler: NextApiHandler = async (req, res) => {
   }
 
   const { owner, repo, runId } = (req.body || {}) as RerunRequestBody;
+  const rerunMode = (req.body as RerunRequestBody | undefined)?.rerunMode ?? 'failed_jobs';
   if (!owner || !repo || runId === undefined || runId === null) {
     return res.status(400).json({
       success: false,
       message: 'owner, repo, and runId are required',
+    });
+  }
+
+  if (rerunMode !== 'failed_jobs' && rerunMode !== 'workflow') {
+    return res.status(400).json({
+      success: false,
+      message: 'rerunMode must be either failed_jobs or workflow',
     });
   }
 
@@ -112,6 +126,7 @@ const handler: NextApiHandler = async (req, res) => {
       owner: normalizedOwner,
       repo: normalizedRepo,
       runId: normalizedRunId,
+      rerunMode,
     });
     return res.status(200).json(result);
   } catch (error) {

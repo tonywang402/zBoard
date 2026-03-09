@@ -23,16 +23,28 @@ The card color immediately communicates the pipeline's health:
 | 🔴 Red | `failed`, `failure`, `timed_out`, `startup_failure` |
 
 
-## Failure Detail on Hover (GitHub Actions only)
+## Failure Detail on Hover
 
-When a GitHub Actions card is red (`failure`), hovering over it reveals a **popover** showing exactly what went wrong. The popover is organized hierarchically:
+When a build card is red, hovering over it reveals a **popover**. When failure detail data is available, the popover is organized hierarchically:
 
 - Each **failed job** is listed as a bold heading.
 - Below each job, the **failed or timed-out steps** are listed by name.
 
+If no failed job/step detail is available, the popover still appears and may only show the `Failed Jobs` title.
+
 This lets you identify the root cause without leaving the dashboard or opening GitHub. The popover appears on hover and does not affect the card's layout or size.
 
-> This feature is only available for GitHub Actions pipelines. CircleCI cards do not show a failure detail popover.
+> For GitHub Actions pipelines, failed job/step details are available when the API returns them.
+
+### Rerun Failed Jobs (GitHub Actions)
+
+For eligible GitHub Actions red cards, a **rerun icon** appears to the right of the `Failed Jobs` title in the hover popover.
+
+From a user perspective:
+- Click the rerun icon to request **rerun failed jobs** for that workflow run.
+- While the request is in progress, the icon is temporarily disabled and shows a loading state.
+- On success, a confirmation toast appears, and the board refreshes to show the latest status.
+- If rerun is not available for that card, the icon is simply not shown.
 
 ## Card Sort Order
 

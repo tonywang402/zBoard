@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import RefreshWrapper from './RefreshWrapper';
-import { Flex, SystemProps } from '@chakra-ui/react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { Flex, IconButton, SystemProps, Text, useColorModeValue } from '@chakra-ui/react';
 import { monitorConfig } from '../../config/datadog_monitor.config';
 import { AlertCard } from './AlertCard';
 
@@ -12,6 +13,139 @@ interface DatadogAlert {
   priority: number;
   alertStrategy: string;
 }
+
+type AlertSeverity = 'high' | 'medium' | 'low';
+
+const DISPLAYED_ALERTS_PER_PAGE = 2;
+const CAROUSEL_INTERVAL_MS = 10 * 1000;
+const ALERT_SEVERITIES: AlertSeverity[] = ['high', 'medium', 'low'];
+
+const normalizeAlertSeverity = (alertStrategy?: string): AlertSeverity | undefined => {
+  if (!alertStrategy) {
+    return undefined;
+  }
+
+  const normalized = alertStrategy.toLowerCase();
+  if (normalized === 'high' || normalized === 'medium' || normalized === 'low') {
+    return normalized;
+  }
+
+  return undefined;
+};
+
+const chunkAlerts = (alerts: DatadogAlert[], chunkSize: number): DatadogAlert[][] => {
+  if (alerts.length === 0) {
+    return [];
+  }
+
+  const chunks: DatadogAlert[][] = [];
+  for (let i = 0; i < alerts.length; i += chunkSize) {
+    chunks.push(alerts.slice(i, i + chunkSize));
+  }
+  return chunks;
+};
+
+const groupAlertsBySeverity = (alerts: DatadogAlert[]) => {
+  const groupedAlerts: Record<AlertSeverity, DatadogAlert[]> = {
+    high: [],
+    medium: [],
+    low: [],
+  };
+
+  alerts.forEach((alert) => {
+    const severity = normalizeAlertSeverity(alert.alertStrategy);
+    if (!severity) {
+      return;
+    }
+    groupedAlerts[severity].push(alert);
+  });
+
+  return groupedAlerts;
+};
+
+interface SeverityAlertCarouselProps {
+  severity: AlertSeverity;
+  alerts: DatadogAlert[];
+}
+
+const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps) => {
+  const labelColor = useColorModeValue('gray.700', 'gray.300');
+  const pages = useMemo(() => chunkAlerts(alerts, DISPLAYED_ALERTS_PER_PAGE), [alerts]);
+  const totalPages = pages.length;
+  const hasMultiplePages = totalPages > 1;
+  const [currentPage, setCurrentPage] = useState(0);
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      setCurrentPage(0);
+      return;
+    }
+
+    setCurrentPage((previousPage) => {
+      if (previousPage < totalPages) {
+        return previousPage;
+      }
+      return totalPages - 1;
+    });
+  }, [totalPages]);
+
+  useEffect(() => {
+    if (!hasMultiplePages) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setCurrentPage((previousPage) => (previousPage + 1) % totalPages);
+    }, CAROUSEL_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasMultiplePages, totalPages]);
+
+  const displayedAlerts = totalPages > 0 ? pages[currentPage] : [];
+
+  const showPreviousPage = () => {
+    if (!hasMultiplePages) {
+      return;
+    }
+    setCurrentPage((previousPage) => (previousPage - 1 + totalPages) % totalPages);
+  };
+
+  const showNextPage = () => {
+    if (!hasMultiplePages) {
+      return;
+    }
+    setCurrentPage((previousPage) => (previousPage + 1) % totalPages);
+  };
+
+  return (
+    <Flex alignItems="center" gap={2} w="100%">
+      <Text fontSize="sm" fontWeight="bold" minW="56px" textTransform="uppercase" color={labelColor}>
+        {severity}
+      </Text>
+      {hasMultiplePages && (
+        <IconButton
+          size="sm"
+          aria-label={`Previous ${severity} alerts`}
+          icon={<ChevronLeftIcon />}
+          onClick={showPreviousPage}
+        />
+      )}
+      <Flex flex="1" gap={6} flexDirection="row" alignItems="stretch" minH="120px">
+        {displayedAlerts.map((alert) => (
+          <AlertCard key={`${severity}-${alert.id}`} {...alert} alertStrategy={severity} />
+        ))}
+      </Flex>
+      {hasMultiplePages && (
+        <IconButton
+          size="sm"
+          aria-label={`Next ${severity} alerts`}
+          icon={<ChevronRightIcon />}
+          onClick={showNextPage}
+        />
+      )}
+    </Flex>
+  );
+};
 
 const DatadogAlertsOverview = (props: SystemProps) => {
   const fetchData = async () => {
@@ -35,43 +169,27 @@ const DatadogAlertsOverview = (props: SystemProps) => {
       showRefreshButtonPosition="right"
       remainOldDataOnError={true}
       render={(data: Array<DatadogAlert>) => {
-        const highAlerts = data.filter(
-          (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'high'
-        );
-        const mediumAlerts = data.filter(
-          (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'medium'
-        );
-        const lowAlerts = data.filter(
-          (DatadogAlert) => DatadogAlert.alertStrategy.toLowerCase() === 'low'
-        );
+        const groupedAlerts = groupAlertsBySeverity(data);
 
         return (
           <Flex
             flexDirection="column"
             flexWrap="wrap"
-            justifyContent="space-between"
+            justifyContent="flex-start"
             alignItems="flex-start"
-            gap={1}
-            overflowY="scroll"
+            gap={2}
+            overflowY="auto"
             h="100%"
             w="100%"
             maxW="100%"
           >
-            <Flex flex-direction="row" gap={10}>
-              {highAlerts.map((alert) => (
-                <AlertCard key={alert.id} {...alert} alertStrategy="high" />
-              ))}
-            </Flex>
-            <Flex flex-direction="row" gap={10}>
-              {mediumAlerts.map((alert) => (
-                <AlertCard key={alert.id} {...alert} alertStrategy="medium" />
-              ))}
-            </Flex>
-            <Flex flex-direction="row" gap={10}>
-              {lowAlerts.map((alert) => (
-                <AlertCard key={alert.id} {...alert} alertStrategy="low" />
-              ))}
-            </Flex>
+            {ALERT_SEVERITIES.map((severity) => (
+              <SeverityAlertCarousel
+                key={severity}
+                severity={severity}
+                alerts={groupedAlerts[severity]}
+              />
+            ))}
           </Flex>
         );
       }}

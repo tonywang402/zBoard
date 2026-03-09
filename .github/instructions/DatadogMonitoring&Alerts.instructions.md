@@ -29,6 +29,12 @@ Alerts are grouped and displayed by severity — **high** alerts first, then **m
 - **Triggered time**
 - A **"Need ACK"** button (and possibly a **WeCom notification** button)
 
+To keep the panel compact and readable on kiosk screens:
+- Each severity group shows **2 alerts per page** at a time.
+- Groups auto-rotate to the next page every **10 seconds**.
+- Each severity group rotates **independently**.
+- When a group has more than one page, users can switch pages manually with left/right controls.
+
 The behavior of each alert depends on its configured `alertStrategy`:
 
 | Strategy | Alert Style | Alarm Sound | WeCom Notification |

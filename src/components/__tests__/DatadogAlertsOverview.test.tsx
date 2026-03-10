@@ -123,7 +123,7 @@ describe('DatadogAlertsOverview carousel', () => {
     expect(mockAlertCardLifecycle.unmountCount).toBe(0);
   });
 
-  it('renders only two alerts per severity group on each page', async () => {
+  it('renders only two alerts per displayed severity group on each page', async () => {
     mockFetchData([
       makeAlert(1, 'high'),
       makeAlert(2, 'high'),
@@ -145,7 +145,7 @@ describe('DatadogAlertsOverview carousel', () => {
     expect(screen.getByTestId('alert-card-medium-5')).toBeVisible();
     expect(screen.getByTestId('alert-card-medium-6')).not.toBeVisible();
 
-    expect(screen.getByTestId('alert-card-low-7')).toBeVisible();
+    expect(screen.queryByTestId('alert-card-low-7')).not.toBeInTheDocument();
   });
 
   it('auto-rotates each group every 10 seconds with independent page cycles', async () => {
@@ -186,11 +186,10 @@ describe('DatadogAlertsOverview carousel', () => {
       jest.advanceTimersByTime(10000);
     });
 
-    expect(screen.getByTestId('alert-card-high-1')).toBeVisible();
-    expect(screen.getByTestId('alert-card-high-3')).not.toBeVisible();
-    expect(screen.getByTestId('alert-card-medium-8')).toBeVisible();
-    expect(screen.getByTestId('alert-card-low-9')).toBeVisible();
-    expect(screen.getByTestId('alert-card-low-10')).toBeVisible();
+    expect(screen.getByTestId('alert-card-high-1')).toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-medium-8')).toBeInTheDocument();
+    expect(screen.queryByTestId('alert-card-low-9')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('alert-card-low-10')).not.toBeInTheDocument();
 
     jest.useRealTimers();
   });
@@ -234,6 +233,16 @@ describe('DatadogAlertsOverview carousel', () => {
     expect(screen.queryByRole('button', { name: 'Next high alerts' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Previous high alerts' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Next medium alerts' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next low alerts' })).not.toBeInTheDocument();
+  });
+
+  it('shows empty state when only low alerts are returned', async () => {
+    mockFetchData([makeAlert(7, 'low')]);
+
+    renderOverview();
+
+    await screen.findByText('No active alerts to display');
+    expect(screen.queryByTestId('alert-card-low-7')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Next low alerts' })).not.toBeInTheDocument();
   });
 });

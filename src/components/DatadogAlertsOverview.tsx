@@ -15,10 +15,11 @@ interface DatadogAlert {
 }
 
 type AlertSeverity = 'high' | 'medium' | 'low';
+type DisplayedAlertSeverity = Exclude<AlertSeverity, 'low'>;
 
 const DISPLAYED_ALERTS_PER_PAGE = 2;
 const CAROUSEL_INTERVAL_MS = 10 * 1000;
-const ALERT_SEVERITIES: AlertSeverity[] = ['high', 'medium', 'low'];
+const DISPLAYED_ALERT_SEVERITIES: DisplayedAlertSeverity[] = ['high', 'medium'];
 
 const normalizeAlertSeverity = (alertStrategy?: string): AlertSeverity | undefined => {
   if (!alertStrategy) {
@@ -52,12 +53,11 @@ const groupAlertsBySeverity = (alerts: DatadogAlert[]) => {
 };
 
 interface SeverityAlertCarouselProps {
-  severity: AlertSeverity;
+  severity: DisplayedAlertSeverity;
   alerts: DatadogAlert[];
 }
 
 const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps) => {
-  const labelColor = useColorModeValue('gray.700', 'gray.300');
   const totalPages = Math.ceil(alerts.length / DISPLAYED_ALERTS_PER_PAGE);
   const hasMultiplePages = totalPages > 1;
   const [currentPage, setCurrentPage] = useState(0);
@@ -108,9 +108,6 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
 
   return (
     <Flex alignItems="center" gap={2} w="100%">
-      <Text fontSize="sm" fontWeight="bold" minW="56px" textTransform="uppercase" color={labelColor}>
-        {severity}
-      </Text>
       {hasMultiplePages && (
         <IconButton
           size="sm"
@@ -144,6 +141,8 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
 };
 
 const DatadogAlertsOverview = (props: SystemProps) => {
+  const emptyStateColor = useColorModeValue('gray.500', 'gray.400');
+
   const fetchData = async () => {
     const monitor = await fetch(`/api/datadog_alert`);
     if (monitor.ok) {
@@ -166,6 +165,26 @@ const DatadogAlertsOverview = (props: SystemProps) => {
       remainOldDataOnError={true}
       render={(data: Array<DatadogAlert>) => {
         const groupedAlerts = groupAlertsBySeverity(data);
+        const displayedSeverities = DISPLAYED_ALERT_SEVERITIES.filter(
+          (severity) => groupedAlerts[severity].length > 0
+        );
+
+        if (displayedSeverities.length === 0) {
+          return (
+            <Flex
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              h="100%"
+              w="100%"
+              minH="120px"
+            >
+              <Text fontSize="sm" color={emptyStateColor}>
+                No active alerts to display
+              </Text>
+            </Flex>
+          );
+        }
 
         return (
           <Flex
@@ -179,7 +198,7 @@ const DatadogAlertsOverview = (props: SystemProps) => {
             w="100%"
             maxW="100%"
           >
-            {ALERT_SEVERITIES.map((severity) => (
+            {displayedSeverities.map((severity) => (
               <SeverityAlertCarousel
                 key={severity}
                 severity={severity}

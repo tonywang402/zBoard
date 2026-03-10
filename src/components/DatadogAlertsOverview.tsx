@@ -20,6 +20,7 @@ type DisplayedAlertSeverity = Exclude<AlertSeverity, 'low'>;
 const DISPLAYED_ALERTS_PER_PAGE = 2;
 const CAROUSEL_INTERVAL_MS = 10 * 1000;
 const DISPLAYED_ALERT_SEVERITIES: DisplayedAlertSeverity[] = ['high', 'medium'];
+const ALERT_SLOT_WIDTH = 'calc(50% - 12px)';
 
 const normalizeAlertSeverity = (alertStrategy?: string): AlertSeverity | undefined => {
   if (!alertStrategy) {
@@ -91,6 +92,9 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
   const isAlertVisibleOnCurrentPage = (alertIndex: number) => {
     return Math.floor(alertIndex / DISPLAYED_ALERTS_PER_PAGE) === currentPage;
   };
+  const pageStartIndex = currentPage * DISPLAYED_ALERTS_PER_PAGE;
+  const pageEndIndex = pageStartIndex + DISPLAYED_ALERTS_PER_PAGE;
+  const shouldRenderEmptySlot = alerts.length > pageStartIndex && alerts.length < pageEndIndex;
 
   const showPreviousPage = () => {
     if (!hasMultiplePages) {
@@ -121,12 +125,21 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
           <Box
             key={`${severity}-${alert.id}-${alert.env}-${alertIndex}`}
             display={isAlertVisibleOnCurrentPage(alertIndex) ? 'block' : 'none'}
-            flex="1"
-            minW={0}
+            flex={`0 0 ${ALERT_SLOT_WIDTH}`}
+            maxW={ALERT_SLOT_WIDTH}
+            sx={{ '& > *': { width: '100%' } }}
           >
             <AlertCard {...alert} alertStrategy={severity} />
           </Box>
         ))}
+        {shouldRenderEmptySlot && (
+          <Box
+            aria-hidden="true"
+            data-testid={`empty-alert-slot-${severity}`}
+            flex={`0 0 ${ALERT_SLOT_WIDTH}`}
+            maxW={ALERT_SLOT_WIDTH}
+          />
+        )}
       </Flex>
       {hasMultiplePages && (
         <IconButton

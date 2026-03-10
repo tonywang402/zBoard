@@ -245,4 +245,33 @@ describe('DatadogAlertsOverview carousel', () => {
     expect(screen.queryByTestId('alert-card-low-7')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Next low alerts' })).not.toBeInTheDocument();
   });
+
+  it('renders an empty slot when a severity page has only one alert', async () => {
+    mockFetchData([makeAlert(1, 'high')]);
+
+    renderOverview();
+
+    await screen.findByTestId('alert-card-high-1');
+    expect(screen.getByTestId('alert-card-high-1')).toBeVisible();
+    expect(screen.getByTestId('empty-alert-slot-high')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next high alerts' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Previous high alerts' })).not.toBeInTheDocument();
+  });
+
+  it('renders an empty slot on the last page when alert count is odd', async () => {
+    mockFetchData([makeAlert(1, 'high'), makeAlert(2, 'high'), makeAlert(3, 'high')]);
+
+    renderOverview();
+
+    await screen.findByTestId('alert-card-high-1');
+    expect(screen.getByTestId('alert-card-high-1')).toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).not.toBeVisible();
+    expect(screen.queryByTestId('empty-alert-slot-high')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next high alerts' }));
+
+    expect(screen.getByTestId('alert-card-high-1')).not.toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).toBeVisible();
+    expect(screen.getByTestId('empty-alert-slot-high')).toBeInTheDocument();
+  });
 });

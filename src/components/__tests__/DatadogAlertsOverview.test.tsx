@@ -3,6 +3,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import DatadogAlertsOverview from '../DatadogAlertsOverview';
 
+const mockAlertCardLifecycle = {
+  mountCount: 0,
+  unmountCount: 0,
+};
+
 jest.mock('../../../config/datadog_monitor.config', () => ({
   monitorConfig: { title: 'Datadog Alerts', refreshIntervalSeconds: 0 },
 }));
@@ -43,9 +48,17 @@ jest.mock('../RefreshWrapper', () => {
 });
 
 jest.mock('../AlertCard', () => ({
-  AlertCard: ({ alertStrategy, id }: { alertStrategy: string; id: number }) => (
-    <div data-testid={`alert-card-${alertStrategy}-${id}`}>{`alert-${alertStrategy}-${id}`}</div>
-  ),
+  AlertCard: ({ alertStrategy, id }: { alertStrategy: string; id: number }) => {
+    React.useEffect(() => {
+      mockAlertCardLifecycle.mountCount += 1;
+
+      return () => {
+        mockAlertCardLifecycle.unmountCount += 1;
+      };
+    }, []);
+
+    return <div data-testid={`alert-card-${alertStrategy}-${id}`}>{`alert-${alertStrategy}-${id}`}</div>;
+  },
 }));
 
 interface TestAlert {
@@ -84,6 +97,30 @@ describe('DatadogAlertsOverview carousel', () => {
   afterEach(() => {
     jest.useRealTimers();
     (global.fetch as jest.Mock).mockReset();
+    mockAlertCardLifecycle.mountCount = 0;
+    mockAlertCardLifecycle.unmountCount = 0;
+  });
+
+  it('does not unmount alert cards when switching carousel pages', async () => {
+    jest.useFakeTimers();
+
+    mockFetchData([
+      makeAlert(1, 'high'),
+      makeAlert(2, 'high'),
+      makeAlert(3, 'high'),
+      makeAlert(4, 'medium'),
+    ]);
+
+    renderOverview();
+
+    await screen.findByTestId('alert-card-high-1');
+    expect(mockAlertCardLifecycle.unmountCount).toBe(0);
+
+    act(() => {
+      jest.advanceTimersByTime(10000);
+    });
+
+    expect(mockAlertCardLifecycle.unmountCount).toBe(0);
   });
 
   it('renders only two alerts per severity group on each page', async () => {
@@ -100,14 +137,15 @@ describe('DatadogAlertsOverview carousel', () => {
     renderOverview();
 
     await screen.findByTestId('alert-card-high-1');
-    expect(screen.getByTestId('alert-card-high-2')).toBeInTheDocument();
-    expect(screen.queryByTestId('alert-card-high-3')).not.toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-high-1')).toBeVisible();
+    expect(screen.getByTestId('alert-card-high-2')).toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).not.toBeVisible();
 
-    expect(screen.getByTestId('alert-card-medium-4')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-medium-5')).toBeInTheDocument();
-    expect(screen.queryByTestId('alert-card-medium-6')).not.toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-medium-4')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-5')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-6')).not.toBeVisible();
 
-    expect(screen.getByTestId('alert-card-low-7')).toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-low-7')).toBeVisible();
   });
 
   it('auto-rotates each group every 10 seconds with independent page cycles', async () => {
@@ -129,24 +167,30 @@ describe('DatadogAlertsOverview carousel', () => {
     renderOverview();
 
     await screen.findByTestId('alert-card-high-1');
-    expect(screen.getByTestId('alert-card-medium-4')).toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-high-1')).toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).not.toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-4')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-6')).not.toBeVisible();
 
     act(() => {
       jest.advanceTimersByTime(10000);
     });
 
-    expect(screen.getByTestId('alert-card-high-3')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-medium-6')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-medium-7')).toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-high-1')).not.toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-4')).not.toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-6')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-7')).toBeVisible();
 
     act(() => {
       jest.advanceTimersByTime(10000);
     });
 
-    expect(screen.getByTestId('alert-card-high-1')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-medium-8')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-low-9')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-low-10')).toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-high-1')).toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).not.toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-8')).toBeVisible();
+    expect(screen.getByTestId('alert-card-low-9')).toBeVisible();
+    expect(screen.getByTestId('alert-card-low-10')).toBeVisible();
 
     jest.useRealTimers();
   });
@@ -168,10 +212,11 @@ describe('DatadogAlertsOverview carousel', () => {
     const nextHighButton = screen.getByRole('button', { name: 'Next high alerts' });
     fireEvent.click(nextHighButton);
 
-    expect(screen.getByTestId('alert-card-high-3')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-medium-4')).toBeInTheDocument();
-    expect(screen.getByTestId('alert-card-medium-5')).toBeInTheDocument();
-    expect(screen.queryByTestId('alert-card-medium-6')).not.toBeInTheDocument();
+    expect(screen.getByTestId('alert-card-high-1')).not.toBeVisible();
+    expect(screen.getByTestId('alert-card-high-3')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-4')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-5')).toBeVisible();
+    expect(screen.getByTestId('alert-card-medium-6')).not.toBeVisible();
   });
 
   it('hides navigation buttons for groups with one page', async () => {

@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import RefreshWrapper from './RefreshWrapper';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { Flex, IconButton, SystemProps, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, Flex, IconButton, SystemProps, Text, useColorModeValue } from '@chakra-ui/react';
 import { monitorConfig } from '../../config/datadog_monitor.config';
 import { AlertCard } from './AlertCard';
 
@@ -33,18 +33,6 @@ const normalizeAlertSeverity = (alertStrategy?: string): AlertSeverity | undefin
   return undefined;
 };
 
-const chunkAlerts = (alerts: DatadogAlert[], chunkSize: number): DatadogAlert[][] => {
-  if (alerts.length === 0) {
-    return [];
-  }
-
-  const chunks: DatadogAlert[][] = [];
-  for (let i = 0; i < alerts.length; i += chunkSize) {
-    chunks.push(alerts.slice(i, i + chunkSize));
-  }
-  return chunks;
-};
-
 const groupAlertsBySeverity = (alerts: DatadogAlert[]) => {
   const groupedAlerts: Record<AlertSeverity, DatadogAlert[]> = {
     high: [],
@@ -70,8 +58,7 @@ interface SeverityAlertCarouselProps {
 
 const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps) => {
   const labelColor = useColorModeValue('gray.700', 'gray.300');
-  const pages = useMemo(() => chunkAlerts(alerts, DISPLAYED_ALERTS_PER_PAGE), [alerts]);
-  const totalPages = pages.length;
+  const totalPages = Math.ceil(alerts.length / DISPLAYED_ALERTS_PER_PAGE);
   const hasMultiplePages = totalPages > 1;
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -101,7 +88,9 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
     return () => window.clearInterval(intervalId);
   }, [hasMultiplePages, totalPages]);
 
-  const displayedAlerts = totalPages > 0 ? pages[currentPage] : [];
+  const isAlertVisibleOnCurrentPage = (alertIndex: number) => {
+    return Math.floor(alertIndex / DISPLAYED_ALERTS_PER_PAGE) === currentPage;
+  };
 
   const showPreviousPage = () => {
     if (!hasMultiplePages) {
@@ -131,8 +120,15 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
         />
       )}
       <Flex flex="1" gap={6} flexDirection="row" alignItems="stretch" minH="120px">
-        {displayedAlerts.map((alert) => (
-          <AlertCard key={`${severity}-${alert.id}`} {...alert} alertStrategy={severity} />
+        {alerts.map((alert, alertIndex) => (
+          <Box
+            key={`${severity}-${alert.id}-${alert.env}-${alertIndex}`}
+            display={isAlertVisibleOnCurrentPage(alertIndex) ? 'block' : 'none'}
+            flex="1"
+            minW={0}
+          >
+            <AlertCard {...alert} alertStrategy={severity} />
+          </Box>
         ))}
       </Flex>
       {hasMultiplePages && (

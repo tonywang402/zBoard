@@ -71,6 +71,6 @@ projects: [
 ]
 ```
 
-> Monitors are queried from Datadog using the tag combination `service: <projectName> env: <env>`. Ensure your Datadog monitors are tagged accordingly.
+> Active alerts are queried from Datadog using `env: <env> status: alert tag:<alertTags[0]>` (configured in `datadog_monitor.config.js`). Ensure your Datadog monitors include the configured tag and environment tags.
 >
 > The Datadog API credentials are read from environment variables (`DD_API_KEY`, `DD_APP_KEY`) automatically by the `@datadog/datadog-api-client` SDK.

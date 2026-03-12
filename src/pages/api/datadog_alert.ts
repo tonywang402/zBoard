@@ -4,7 +4,7 @@ import { monitorConfig as datadogMonitorConfigs } from '../../../config/datadog_
 
 interface alertConfig {
   env: string;
-  priority: Number;
+  priority: number;
   alertStrategy: string;
 }
 
@@ -29,10 +29,13 @@ const handler: NextApiHandler = async (req, res) => {
 const fetchMonitorAlertData = async () => {
   const monitorConfig = datadogMonitorConfigs.datasource.datadog;
   if (monitorConfig.enabled) {
+    const alertTag = monitorConfig.alertTags?.[0];
+    if (!alertTag) {
+      throw new Error('datadog datasource alertTags[0] is required');
+    }
+
     const allData = await Promise.all(
-      monitorConfig.projects.map((project) =>
-        searchAlerts(project.monitorConfigs, project.projectName)
-      )
+      monitorConfig.projects.map((project) => searchAlerts(project.monitorConfigs, alertTag))
     );
     return allData.flat();
   }
@@ -41,10 +44,10 @@ const fetchMonitorAlertData = async () => {
 
 async function searchAlerts(
   monitorConfigs: alertConfig[],
-  projectName: string
+  alertTag: string
 ): Promise<alertDatas[]> {
   const alertData = await Promise.all(
-    monitorConfigs.map((config) => searchMonitor(config, projectName))
+    monitorConfigs.map((config) => searchMonitor(config, alertTag))
   );
 
   return alertData.flat().filter((alert): alert is alertDatas => alert !== undefined);
@@ -55,17 +58,13 @@ const searchMonitor = async (
     env,
     priority,
     alertStrategy,
-  }: {
-    env: string;
-    priority: Number;
-    alertStrategy: string;
-  },
-  projectName: String
+  }: alertConfig,
+  alertTag: string
 ) => {
   const configuration = client.createConfiguration();
   const apiInstance = new v1.MonitorsApi(configuration);
   const params: v1.MonitorsApiSearchMonitorsRequest = {
-    query: `service: ${projectName.toLowerCase()} env: ${env.toLowerCase()} status: alert`,
+    query: `env: ${env.toLowerCase()} status: alert tag:${alertTag}`,
   };
 
   try {

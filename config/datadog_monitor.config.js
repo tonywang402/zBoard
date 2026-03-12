@@ -5,6 +5,7 @@ export const monitorConfig = {
     datadog: {
       enabled: true,
       refreshIntervalSeconds: 30,
+      alertTags:["otr_team:otr_team_changan"],
       projects: [
         {
           projectName: 'handover',

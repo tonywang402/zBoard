@@ -1,7 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import RefreshWrapper from './RefreshWrapper';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { Box, Flex, IconButton, SystemProps, Text, useColorModeValue } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  HStack,
+  Icon,
+  IconButton,
+  Stat,
+  StatLabel,
+  StatNumber,
+  SystemProps,
+  Text,
+  useColorModeValue,
+} from '@chakra-ui/react';
+import { FcAddressBook, FcAssistant, FcCustomerSupport, FcHeadset } from 'react-icons/fc';
 import { monitorConfig } from '../../config/datadog_monitor.config';
 import { AlertCard } from './AlertCard';
 
@@ -14,13 +27,53 @@ interface DatadogAlert {
   alertStrategy: string;
 }
 
+interface DatadogStatusCount {
+  name: string;
+  count: number;
+}
+
+interface DatadogMonitorInfo {
+  env: string;
+  priority: number;
+  alertStrategy: string;
+  color: string;
+  status?: DatadogStatusCount[];
+}
+
+interface DatadogMonitor {
+  projectName: string;
+  monitorInfo: DatadogMonitorInfo[];
+}
+
+interface DatadogAlertsOverviewPayload {
+  alerts: DatadogAlert[];
+  monitors: DatadogMonitor[];
+}
+
+interface EnvironmentAlertStat {
+  env: string;
+  priority: number;
+  alertCount: number;
+}
+
 type AlertSeverity = 'high' | 'medium' | 'low';
-type DisplayedAlertSeverity = Exclude<AlertSeverity, 'low'>;
+type DisplayedAlertSeverity = 'high';
 
 const DISPLAYED_ALERTS_PER_PAGE = 2;
 const CAROUSEL_INTERVAL_MS = 10 * 1000;
-const DISPLAYED_ALERT_SEVERITIES: DisplayedAlertSeverity[] = ['high', 'medium'];
+const DISPLAYED_ALERT_SEVERITIES: DisplayedAlertSeverity[] = ['high'];
 const ALERT_SLOT_WIDTH = 'calc(50% - 12px)';
+
+const ENVIRONMENT_ICON_BY_ENV = {
+  prod: FcAssistant,
+  sc: FcCustomerSupport,
+  int: FcAddressBook,
+  ci: FcHeadset,
+};
+
+const getEnvironmentIcon = (env: string) => {
+  return ENVIRONMENT_ICON_BY_ENV[env.toLowerCase() as keyof typeof ENVIRONMENT_ICON_BY_ENV] || FcAssistant;
+};
 
 const normalizeAlertSeverity = (alertStrategy?: string): AlertSeverity | undefined => {
   if (!alertStrategy) {
@@ -51,6 +104,51 @@ const groupAlertsBySeverity = (alerts: DatadogAlert[]) => {
   });
 
   return groupedAlerts;
+};
+
+const getAlertCount = (statusCounts?: DatadogStatusCount[]) => {
+  if (!statusCounts || statusCounts.length === 0) {
+    return 0;
+  }
+
+  return statusCounts
+    .filter((statusCount) => statusCount.name.toLowerCase() === 'alert')
+    .reduce((total, statusCount) => total + Number(statusCount.count), 0);
+};
+
+const buildEnvironmentAlertStats = (monitors: DatadogMonitor[]) => {
+  const mergedStatsByEnvironment = new Map<string, EnvironmentAlertStat>();
+
+  monitors.forEach((project) => {
+    project.monitorInfo.forEach((monitor) => {
+      const envKey = monitor.env.toLowerCase();
+      const alertCount = getAlertCount(monitor.status);
+      const priority = Number(monitor.priority);
+      const existingStat = mergedStatsByEnvironment.get(envKey);
+
+      if (!existingStat) {
+        mergedStatsByEnvironment.set(envKey, {
+          env: monitor.env,
+          priority,
+          alertCount,
+        });
+        return;
+      }
+
+      mergedStatsByEnvironment.set(envKey, {
+        env: existingStat.env,
+        priority: Math.min(existingStat.priority, priority),
+        alertCount: existingStat.alertCount + alertCount,
+      });
+    });
+  });
+
+  return [...mergedStatsByEnvironment.values()].sort((left, right) => {
+    if (left.priority !== right.priority) {
+      return left.priority - right.priority;
+    }
+    return left.env.localeCompare(right.env);
+  });
 };
 
 interface SeverityAlertCarouselProps {
@@ -155,13 +253,27 @@ const SeverityAlertCarousel = ({ severity, alerts }: SeverityAlertCarouselProps)
 
 const DatadogAlertsOverview = (props: SystemProps) => {
   const emptyStateColor = useColorModeValue('gray.500', 'gray.400');
+  const statBorderColor = useColorModeValue('gray.200', 'gray.600');
 
-  const fetchData = async () => {
-    const monitor = await fetch(`/api/datadog_alert`);
-    if (monitor.ok) {
-      return await monitor.json();
-    } else {
-      return undefined;
+  const fetchData = async (): Promise<DatadogAlertsOverviewPayload[]> => {
+    try {
+      const [monitorResponse, alertResponse] = await Promise.all([
+        fetch(`/api/datadog`),
+        fetch(`/api/datadog_alert`),
+      ]);
+
+      if (!monitorResponse.ok || !alertResponse.ok) {
+        throw new Error('Failed to fetch Datadog monitor or alert data');
+      }
+
+      const [monitors, alerts] = await Promise.all([
+        monitorResponse.json() as Promise<DatadogMonitor[]>,
+        alertResponse.json() as Promise<DatadogAlert[]>,
+      ]);
+
+      return [{ alerts, monitors }];
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -176,48 +288,108 @@ const DatadogAlertsOverview = (props: SystemProps) => {
       refreshIntervalSeconds={monitorConfig.refreshIntervalSeconds || 30}
       showRefreshButtonPosition="right"
       remainOldDataOnError={true}
-      render={(data: Array<DatadogAlert>) => {
-        const groupedAlerts = groupAlertsBySeverity(data);
+      render={(data: DatadogAlertsOverviewPayload[]) => {
+        const payload = data[0] || { alerts: [], monitors: [] };
+        const groupedAlerts = groupAlertsBySeverity(payload.alerts);
+        const environmentAlertStats = buildEnvironmentAlertStats(payload.monitors);
         const displayedSeverities = DISPLAYED_ALERT_SEVERITIES.filter(
           (severity) => groupedAlerts[severity].length > 0
         );
 
-        if (displayedSeverities.length === 0) {
-          return (
-            <Flex
-              flexDirection="column"
-              justifyContent="center"
-              alignItems="center"
-              h="100%"
-              w="100%"
-              minH="120px"
-            >
-              <Text fontSize="sm" color={emptyStateColor}>
-                No active alerts to display
-              </Text>
-            </Flex>
-          );
-        }
-
         return (
           <Flex
             flexDirection="column"
-            flexWrap="wrap"
             justifyContent="flex-start"
-            alignItems="flex-start"
-            gap={2}
+            alignItems="stretch"
+            gap={3}
             overflowY="auto"
             h="100%"
             w="100%"
             maxW="100%"
           >
-            {displayedSeverities.map((severity) => (
-              <SeverityAlertCarousel
-                key={severity}
-                severity={severity}
-                alerts={groupedAlerts[severity]}
-              />
-            ))}
+            <Box w="100%">
+              {environmentAlertStats.length > 0 ? (
+                <Flex
+                  w="100%"
+                  flexWrap="wrap"
+                  gap={2}
+                  alignItems="stretch"
+                  justifyContent="center"
+                >
+                  {environmentAlertStats.map((environmentAlertStat) => {
+                    const EnvironmentIcon = getEnvironmentIcon(environmentAlertStat.env);
+
+                    return (
+                      <Stat
+                        key={environmentAlertStat.env.toLowerCase()}
+                        borderWidth="1px"
+                        borderColor={statBorderColor}
+                        borderRadius="md"
+                        px={3}
+                        py={2}
+                        minW="108px"
+                        flex="0 0 calc(12.5% - 8px)"
+                      >
+                        <HStack justifyContent="space-between" alignItems="flex-start" mb={1}>
+                          <StatLabel fontSize="xs" letterSpacing="0.04em" mb={0}>
+                            {environmentAlertStat.env.toUpperCase()}
+                          </StatLabel>
+                          <Icon
+                            as={EnvironmentIcon}
+                            boxSize={3.5}
+                            aria-label={`${environmentAlertStat.env} alert indicator`}
+                          />
+                        </HStack>
+                        <StatNumber
+                          fontSize="2xl"
+                          lineHeight="1.2"
+                          data-testid={`monitor-alert-count-${environmentAlertStat.env.toLowerCase()}`}
+                        >
+                          {environmentAlertStat.alertCount}
+                        </StatNumber>
+                      </Stat>
+                    );
+                  })}
+                </Flex>
+              ) : (
+                <Text fontSize="sm" color={emptyStateColor}>
+                  No monitor environments to display
+                </Text>
+              )}
+            </Box>
+
+            <Box w="100%" minH="120px">
+              {displayedSeverities.length === 0 ? (
+                <Flex
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="center"
+                  h="100%"
+                  w="100%"
+                  minH="120px"
+                >
+                  <Text fontSize="sm" color={emptyStateColor}>
+                    No high alerts to display
+                  </Text>
+                </Flex>
+              ) : (
+                <Flex
+                  flexDirection="column"
+                  justifyContent="flex-start"
+                  alignItems="stretch"
+                  gap={2}
+                  w="100%"
+                >
+                  {displayedSeverities.map((severity) => (
+                    <SeverityAlertCarousel
+                      key={severity}
+                      severity={severity}
+                      alerts={groupedAlerts[severity]}
+                    />
+                  ))}
+                </Flex>
+              )}
+            </Box>
           </Flex>
         );
       }}

@@ -3,7 +3,6 @@ import BuildStatusOverview from '@/components/BuildStatusOverview';
 import CollapseNavbar from '@/components/CollapseNavbar';
 import UpdateChecker from '@/components/UpdateChecker';
 import AlarmToggleProvider from './AlarmToggleContext';
-import DatadogMonitorOverview from '@/components/DatadogMonitorOverview';
 import DatadogAlertsOverview from '@/components/DatadogAlertsOverview';
 
 export default function Home() {
@@ -13,16 +12,13 @@ export default function Home() {
         <UpdateChecker />
         <CollapseNavbar />
         <VStack px="8px" flex="1" width="100vw" overflow="hidden">
-          <HStack w="100%" h="100%">
-            <DatadogMonitorOverview width="240px" />
-            <VStack flex="1" h="100%" overflow="hidden">
-              <DatadogAlertsOverview />
-              <HStack w="100%" minH="572px">
-                <BuildStatusOverview flex="75%" h="100%" />
-                {/* <TicketStatusOverview flex="25%" h="100%" /> */}
-              </HStack>
-            </VStack>
-          </HStack>
+          <VStack flex="1" h="100%" overflow="hidden" w="100%">
+            <DatadogAlertsOverview />
+            <HStack w="100%" minH="572px">
+              <BuildStatusOverview flex="75%" h="100%" />
+              {/* <TicketStatusOverview flex="25%" h="100%" /> */}
+            </HStack>
+          </VStack>
         </VStack>
       </VStack>
     </AlarmToggleProvider>

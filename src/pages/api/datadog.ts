@@ -4,13 +4,13 @@ import { monitorConfig as datadogMonitorConfigs } from '../../../config/datadog_
 
 interface alertConfig {
   env: string;
-  priority: Number;
+  priority: number;
   alertStrategy: string;
 }
 
 interface monitorData {
-  projectName: String;
-  monitorInfo: Array<any>;
+  projectName: string;
+  monitorInfo: any[];
 }
 
 const handler: NextApiHandler = async (req, res) => {
@@ -25,9 +25,14 @@ const handler: NextApiHandler = async (req, res) => {
 const fetchMonitorData = async () => {
   const monitorConfig = datadogMonitorConfigs.datasource.datadog;
   if (monitorConfig.enabled) {
+    const alertTag = monitorConfig.alertTags?.[0];
+    if (!alertTag) {
+      throw new Error('datadog datasource alertTags[0] is required');
+    }
+
     const allData = await Promise.all(
       monitorConfig.projects.map((project) =>
-        searchMonitors(project.monitorConfigs, project.projectName)
+        searchMonitors(project.monitorConfigs, project.projectName, alertTag)
       )
     );
     return allData;
@@ -37,10 +42,11 @@ const fetchMonitorData = async () => {
 
 async function searchMonitors(
   monitorConfigs: alertConfig[],
-  projectName: String
+  projectName: string,
+  alertTag: string
 ): Promise<monitorData> {
   const allData = await Promise.all(
-    monitorConfigs.map((config) => searchMonitor(config, projectName))
+    monitorConfigs.map((config) => searchMonitor(config, alertTag))
   );
   return { projectName, monitorInfo: allData };
 }
@@ -50,17 +56,13 @@ const searchMonitor = async (
     env,
     priority,
     alertStrategy,
-  }: {
-    env: string;
-    priority: Number;
-    alertStrategy: string;
-  },
-  projectName: String
+  }: alertConfig,
+  alertTag: string
 ) => {
   const configuration = client.createConfiguration();
   const apiInstance = new v1.MonitorsApi(configuration);
   const params: v1.MonitorsApiSearchMonitorsRequest = {
-    query: `service: ${projectName.toLowerCase()} env: ${env.toLowerCase()}`,
+    query: `env: ${env.toLowerCase()} status: alert tag:${alertTag}`,
   };
 
   try {
